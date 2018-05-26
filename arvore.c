@@ -43,5 +43,13 @@ int EhFolha(Arvore* arvore)
 // Apagando a árvore:
 Arvore* DestroiArvore(Arvore* raiz)
 {
-    
+    if (EhFolha(raiz)) // Verificando se é um nó folha
+        free(raiz);
+    else
+    {
+        DestroiArvore(raiz->esq);
+        DestroiArvore(raiz->dir);
+        free(raiz);
+    }
+    return NULL;
 }

@@ -43,7 +43,7 @@ int EhFolha(Arvore* arvore);
 /**
  * Função que destrói uma árvore da memória:
  * Input: ponteiro para o nó raiz da árvore;
- * Output: ponteiro vazio, caso a árvore seja apagada, ou o ponteiro da árvore caso aconteça algum erro;
+ * Output: ponteiro vazio;
  * Condições: árvore existente e alocada;
  * Efeitos Colaterais: a árvore será apagada da memória;
 */

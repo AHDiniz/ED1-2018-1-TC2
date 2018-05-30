@@ -58,6 +58,13 @@ int EhFolha(Arvore* arvore);
 int NumFolhas(Arvore* arvore);
 
 /**
+ * Função que retorna o caminho da raiz até um dado nó:
+ * Inputs: nó raiz e nó alvo;
+ * Condições: ambas as árvores existentes e alocadas;
+ * Efeitos Colaterais: nenhum; 
+*/
+
+/**
  * Função que destrói uma árvore da memória:
  * Input: ponteiro para o nó raiz da árvore;
  * Output: ponteiro vazio;

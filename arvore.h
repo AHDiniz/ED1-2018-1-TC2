@@ -49,6 +49,15 @@ Arvore* CriaArvore(char caracter, int ocorrencias, Arvore* esq, Arvore* dir);
 int EhFolha(Arvore* arvore);
 
 /**
+ * Função que calcula o número de nós folhas de uma árvore:
+ * Input: ponteiro para a árvore;
+ * Output: número de nós folha;
+ * Condições: árvore existente e alocada;
+ * Efeitos Colaterais: nenhum;
+*/
+int NumFolhas(Arvore* arvore);
+
+/**
  * Função que destrói uma árvore da memória:
  * Input: ponteiro para o nó raiz da árvore;
  * Output: ponteiro vazio;

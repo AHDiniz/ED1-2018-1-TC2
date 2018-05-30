@@ -48,6 +48,14 @@ int EhFolha(Arvore* arvore)
     return (arvore->esq == NULL && arvore->dir == NULL);
 }
 
+// Calculando o número de nós folhas:
+int NumFolhas(Arvore* arvore)
+{
+    if (EhFolha(arvore))
+        return 1;
+    return NumFolhas(arvore->esq) + NumFolhas(arvore->dir);
+}
+
 // Apagando a árvore:
 Arvore* DestroiArvore(Arvore* raiz)
 {

@@ -1,3 +1,11 @@
+/********************************************
+Trabalho 2 ED1 2018/1: Sistema colaborativo
+
+Alan Herculano Diniz e Rafael Belmock Pedruzzi
+
+arvore.h: definições para arvore genérica
+********************************************/
+
 #ifndef ARVORE_H_
 
 #define ARVORE_H_

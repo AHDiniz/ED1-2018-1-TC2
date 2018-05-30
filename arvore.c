@@ -1,5 +1,5 @@
 /********************************************
-Trabalho 2 ED1 2018/1: Sistema colaborativo
+Trabalho 2 ED1 2018/1: Compactador de arquivos
 
 Alan Herculano Diniz e Rafael Belmock Pedruzzi
 

@@ -45,10 +45,12 @@ Arvore* DestroiArvore(Arvore* raiz)
 {
     if (EhFolha(raiz)) // Verificando se é um nó folha
         free(raiz);
-    else
+    else // Se não for um nó folha
     {
-        DestroiArvore(raiz->esq);
-        DestroiArvore(raiz->dir);
+        if (raiz->esq != NULL)
+            DestroiArvore(raiz->esq); // Destruindo a subárvore da esquerda
+        if (raiz->dir != NULL)
+            DestroiArvore(raiz->dir); // Destruindo a subárvore da direita
         free(raiz);
     }
     return NULL;

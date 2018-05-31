@@ -60,6 +60,7 @@ int NumFolhas(Arvore* arvore);
 /**
  * Função que retorna o caminho da raiz até um dado nó:
  * Inputs: nó raiz e nó alvo;
+ * Output: 
  * Condições: ambas as árvores existentes e alocadas;
  * Efeitos Colaterais: nenhum; 
 */

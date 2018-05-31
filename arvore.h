@@ -58,12 +58,22 @@ int EhFolha(Arvore* arvore);
 int NumFolhas(Arvore* arvore);
 
 /**
+ * Função que verifica se um nó pertence a uma dada árvore:
+ * Inputs: ponteiro para raiz da árvore e para o nó alvo;
+ * Output: inteiro booleano que diz se o nó pertence ou não à árvore;
+ * Condições: variáveis existentes e alocadas;
+ * Efeitos Colaterais: nenhum;
+*/
+int Pertence(Arvore* raiz, Arvore* no);
+
+/**
  * Função que retorna o caminho da raiz até um dado nó:
  * Inputs: nó raiz e nó alvo;
- * Output: 
+ * Output: string com os dados de cada nó no caminho
  * Condições: ambas as árvores existentes e alocadas;
  * Efeitos Colaterais: nenhum; 
 */
+char* Caminho(Arvore* raiz, Arvore* no);
 
 /**
  * Função que destrói uma árvore da memória:

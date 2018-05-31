@@ -56,6 +56,17 @@ int NumFolhas(Arvore* arvore)
     return NumFolhas(arvore->esq) + NumFolhas(arvore->dir);
 }
 
+// Verificando se um nó pertence a uma árvore:
+int Pertence(Arvore* raiz, Arvore* no)
+{
+    if (raiz->caracter == no->caracter)
+        return 1;
+    return Pertence(raiz->esq, no) || Pertence(raiz->dir, no);
+}
+
+// Caminho da raiz até o nó:
+
+
 // Apagando a árvore:
 Arvore* DestroiArvore(Arvore* raiz)
 {

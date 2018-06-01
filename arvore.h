@@ -16,7 +16,7 @@ arvore.h: definições para arvore genérica
  * Possui os seguintes campos:
  * Arvore* esq: ponteiro para a subárvore da esquerda;
  * Arvore* dir: ponteiro para a subárvore da direita;
- * char caracter: caracter analisado;
+ * unsigned char caracter: caracter analisado;
  * int ocorrencias: número de ocorrências do caracter;
 */
 typedef struct arvore Arvore;
@@ -28,7 +28,7 @@ typedef struct arvore Arvore;
  * Condições: nenhuma;
  * Efeitos Colaterais: nenhum;
 */
-Arvore* CriaFolha(char caracter, int ocorrencias);
+Arvore* Arvore_CriaFolha(unsigned char caracter, int ocorrencias);
 
 /**
  * Função que cria uma árvore:
@@ -37,7 +37,25 @@ Arvore* CriaFolha(char caracter, int ocorrencias);
  * Condições: subárvores existentes e alocadas;
  * Efeitos Colaterais: nenhum;
 */
-Arvore* CriaArvore(char caracter, int ocorrencias, Arvore* esq, Arvore* dir);
+Arvore* Arvore_CriaArvore(unsigned char caracter, int ocorrencias, Arvore* esq, Arvore* dir);
+
+/**
+ * Função que retorna o caracter de uma árvore:
+ * Input: ponteiro para a árvore;
+ * Output: caracter;
+ * Condições: árvore existente e alocada;
+ * Efeitos Colaterais: nenhum;
+*/
+unsigned char Arvore_Caracter(Arvore* arvore);
+
+/**
+ * Função que retorna o valor ocorrências de uma árvore:
+ * Input: ponteiro para a árvore;
+ * Output: inteiro;
+ * Condições: árvore existente e alocada;
+ * Efeitos Colaterais: nenhum;
+*/
+int Arvore_Ocorrencias(Arvore* arvore);
 
 /**
  * Função que verifica se a árvore é uma folha ou não:
@@ -46,7 +64,7 @@ Arvore* CriaArvore(char caracter, int ocorrencias, Arvore* esq, Arvore* dir);
  * Condições: árvore existente e alocada;
  * Efeitos Colaterais: nenhum;
 */
-int EhFolha(Arvore* arvore);
+int Arvore_EhFolha(Arvore* arvore);
 
 /**
  * Função que calcula o número de nós folhas de uma árvore:
@@ -55,16 +73,16 @@ int EhFolha(Arvore* arvore);
  * Condições: árvore existente e alocada;
  * Efeitos Colaterais: nenhum;
 */
-int NumFolhas(Arvore* arvore);
+int Arvore_NumFolhas(Arvore* arvore);
 
 /**
- * Função que verifica se um nó pertence a uma dada árvore:
- * Inputs: ponteiro para raiz da árvore e para o nó alvo;
- * Output: inteiro booleano que diz se o nó pertence ou não à árvore;
- * Condições: variáveis existentes e alocadas;
+ * Função que verifica se um caracter pertence a algum nó de uma dada árvore:
+ * Inputs: ponteiro para raiz da árvore e caracter (sem sinal);
+ * Output: inteiro booleano que diz se o caracter pertence ou não à árvore;
+ * Condições: variáveis existentes;
  * Efeitos Colaterais: nenhum;
 */
-int Pertence(Arvore* raiz, Arvore* no);
+int Arvore_Pertence(Arvore* raiz, unsigned char* c);
 
 /**
  * Função que retorna o caminho da raiz até um dado nó:
@@ -73,7 +91,7 @@ int Pertence(Arvore* raiz, Arvore* no);
  * Condições: ambas as árvores existentes e alocadas;
  * Efeitos Colaterais: nenhum; 
 */
-char* Caminho(Arvore* raiz, Arvore* no);
+unsigned char* Arvore_Caminho(Arvore* raiz, Arvore* no);
 
 /**
  * Função que destrói uma árvore da memória:
@@ -82,6 +100,6 @@ char* Caminho(Arvore* raiz, Arvore* no);
  * Condições: árvore existente e alocada;
  * Efeitos Colaterais: a árvore será apagada da memória;
 */
-Arvore* DestroiArvore(Arvore* raiz);
+Arvore* Arvore_DestroiArvore(Arvore* raiz);
 
 #endif

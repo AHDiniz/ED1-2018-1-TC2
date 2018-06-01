@@ -82,7 +82,7 @@ int Lista_TamanhoLista(Lista* lista)
 }
 
 // Adicionando um item na lista:
-void Lista_ListaAdd(Lista* lista, Item* item)
+void Lista_ListaAdd(Lista* lista, Item* item, unsigned int pos)
 {
     if (!CmpTipoListaItem(lista, item)) // Comparando os tipos da lista e do item
     {
@@ -90,11 +90,39 @@ void Lista_ListaAdd(Lista* lista, Item* item)
         return; // Se forem diferentes, o item não será adicionado na lista
     }
     if (Lista_ListaVazia(lista)) // Se a lista for vazia
+    {
         lista->primeiro = item; // O primeiro item da lista vai ser o item de entrada da função
-    else // Se a lista possuir algum elemento
-        lista->ultimo->proximo = item; // O próximo item do atual último da lista é o item de entrada
-    lista->ultimo = item; // O último item da lista será o item de entrada
-    item->posicao = lista->comprimento; // Definindo a posicao do item de entrada na lista
+        lista->ultimo = item; // O último item da lista tambem será o item de entrada
+    }
+    else
+    {
+        if(pos >= lista->comprimento) // Se a a posição for maior ou igual ao tamanho da lista
+        {
+            lista->ultimo->proximo = item; // O próximo item do atual último da lista é o item de entrada
+            lista->ultimo = item; // O último item da lista será o item de entrada
+        }
+        else // Se a posição for no meio da lista
+        {
+            // Variável auxiliar que ajudará a percorrer a lista:
+            Item* p = lista->primeiro;
+            int i;
+            for (i = 1; i < pos; i++) // Percorrendo cada item da lista
+            {
+                p = p->proximo; // atualizando auxiliar até que seja o item da posição pos-1
+            }
+            
+            item->proximo = p->proximo;
+            p->proximo = item;
+            // Atualizando os valores das posições dos itens da lista:
+            p = item->proximo; // Primeiro item que precisa ter sua posição atualizada
+            for (i = pos+1; i < lista->comprimento - 1; i++)
+            {
+                p->posicao++;
+                p = p->proximo;
+            }
+        }
+    }
+    item->posicao = pos; // Definindo a posicao do item de entrada na lista
     lista->comprimento++; // Atualizando o tamanho da lista
 }
 

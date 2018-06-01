@@ -3,12 +3,12 @@ Trabalho 2 ED1 2018/1: Compactador de arquivos
 
 Alan Herculano Diniz e Rafael Belmock Pedruzzi
 
-compacta.h: definições para compactador
+compactador.h: definições para compactador
 ********************************************/
 
-#ifndef COMPACTA_H_
+#ifndef COMPACTADOR_H_
 
-#define COMPACTA_H_
+#define COMPACTADOR_H_
 
 #include "arvore.h"
 
@@ -19,7 +19,7 @@ compacta.h: definições para compactador
  * Condições: arquivo existe;
  * Efeitos Colaterais: nenhum;
 */
-Arvore* Compacta_MontaArvoreHuffman(char* arquivo);
+Arvore* Compactador_MontaArvoreHuffman(char* arquivo);
 
 /**
  * Função de impressão do arquivo compactado:
@@ -28,6 +28,15 @@ Arvore* Compacta_MontaArvoreHuffman(char* arquivo);
  * Condições: arvore válida e arquivo existe;
  * Efeitos Colaterais: nenhum;
 */
-void Compacta_ImprimeArquivo(Arvore* arvorHuffman, char* arquivo);
+void Compactador_Compacta(Arvore* arvorHuffman, char* arquivo);
+
+/**
+ * Função de descompactação de um arquivo:
+ * Input: nome do arquivo (com extensão .comp);
+ * Output: arquivo descompactado;
+ * Condições: arquivo existe;
+ * Efeitos Colaterais: nenhum;
+*/
+void Compactador_Descompacta(char* arquivo);
 
 #endif

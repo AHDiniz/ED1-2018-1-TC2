@@ -65,7 +65,7 @@ Adicionar item na lista:
 - Pré-condições: a lista e o item não podem estar vazios;
 - Pós-condições: o item é adicionado na lista e ela fica maior;
 */
-void Lista_ListaAdd(Lista* lista, Item* item);
+void Lista_ListaAdd(Lista* lista, Item* item, unsigned int pos);
 
 /*
 Remover item na lista:

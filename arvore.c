@@ -91,7 +91,23 @@ int Arvore_Pertence(Arvore* raiz, unsigned char* c)
 }
 
 // Verificando o caminho até um determinado nó da árvore
-unsigned char* Arvore_Caminho(Arvore* raiz, unsigned char* c);
+void Arvore_Caminho(bitmap* map, Arvore* raiz, unsigned int pos, unsigned char* c)
+{
+    if(Arvore_EhFolha(raiz)) // se for um nó folha
+    {
+        return; // aborta a função
+    }
+    if(Arvore_Pertence(raiz->esq,c)) // se estiver na árvore da esquerda
+    {
+        bitmapSetBit(map,pos,0); // acrescenta 0 (codigo para esquerda) no bitmap na posição especificada
+        Arvore_Caminho(map,raiz->esq,++pos,c); // incrementa posição e continua o caminho na árvore da esquerda
+    }
+    else
+    {
+        bitmapSetBit(map,pos,1); // acrescenta 1 (codigo para direita) no bitmap na posição especificada
+        Arvore_Caminho(map,raiz->dir,++pos,c); // incrementa posição e continua o caminho na árvore da direita
+    }
+}
 
 // Apagando a árvore:
 Arvore* Arvore_DestroiArvore(Arvore* raiz)

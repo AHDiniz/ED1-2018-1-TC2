@@ -19,6 +19,36 @@ compactador.c: implementações para compactador
 int i; // Variavel global de incrementação
 
 /**
+ * Função auxiliar que inicializa n posições de um bitmap:
+ * Input: bitmap e número de posições;
+ * Output: nunhum;
+ * Condições: bitmap existe e tem tamanho máximo >= n;
+ * Efeitos Colaterais: todas as n primeiras posicões do bitmap ficam iguais a 0;
+*/
+static void InicializaBitmap(bitmap* map, unsigned int n)
+{
+    for(i = 0 ; i < n ; i++) // inicializando conteudo do bitmap como 0
+    {
+        bitmapAppendLeastSignificantBit(map,0);
+    }
+}
+
+/**
+ * Função auxiliar que imprime n posições de um binário num arquivo:
+ * Input: arquivo, binário e número de posições;
+ * Output: nunhum;
+ * Condições: arquivo aberto, binário existe e tem tamanho máximo >= n;
+ * Efeitos Colaterais: arquivo contem os bits impressos;
+*/
+static void ImprimeBinario(FILE* arquivo, unsigned char* bits, unsigned int n)
+{
+    for(i = 0 ; i < n ; i++) // percorre o binário
+    {
+        fprintf(arquivo, "%u", bits +i); // imprime cada bit
+    }
+}
+
+/**
  * Função auxiliar que converte um caracter sem sinal para binário:
  * Input: bitmap que armazenará o binário e um caracter sem sinal;
  * Output: bitmap contendo o caracter convertido (posição 0 mais significativa);
@@ -123,11 +153,8 @@ static void ImprimeArvore(Arvore* arvore, FILE* output)
     if(Arvore_EhFolha(arvore)) // se a árvore for uma folha
     {
         fprintf(output, "0"); // imprime 0 (codigo para folha)
-        // Imprime o char binário utilizando aritimética de ponteiro
-        for(i = 0 ; i < 8 ; i++) // percorre o binário
-        {
-            fprintf(output, "%u", Arvore_Caracter(arvore) +i); // imprime o bit
-        }
+        // Imprime o char binário
+        ImprimeBinario(output, Arvore_Caracter(arvore), 8);
     }
     else // se a árvore for um nó
     {
@@ -151,10 +178,7 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
 
     // Inicializando bitmap para converter caracteres em binário
     bitmap map = bitmapInit(9); // inicializando bitmap
-    for(i = 0 ; i < 8 ; i++) // inicializando seu conteudo
-    {
-        bitmapAppendLeastSignificantBit(&map,0);
-    }
+    InicializaBitmap(&map,8); // inicializando seus 8 primeiros bits como 0
     bitmapAppendLeastSignificantBit(&map,'\0'); // incluindo \0 no fim para permitir cópia do conteudo via strcpy
 
     for(i = 0 ; i < ASCII_TAM ; i++) // Varrendo todo vetor de caracteres
@@ -191,11 +215,26 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
 void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
 {
     FILE* output = fopen(saida, "w");
+    FILE* input = fopen(entrada, "r");
+    unsigned char c;
+    int j;
+    bitmap caminho = bitmapInit(8);
+    InicializaBitmap(&caminho,8); // inicializando todos os seus bits como 0
 
     ImprimeArvore(arvoreHuffman,output);
 
+    c = fgetc(input);
+    while(c != EOF)
+    {
+        j = 0;
+        Arvore_Caminho(&caminho,arvoreHuffman,j,c);
 
+        ImprimeBinario(output,bitmapGetContents(caminho),j-1);
 
+        c = fgetc(input);
+    }
+
+    fclose(input);
     fclose(output);
 }
 

@@ -10,6 +10,8 @@ arvore.h: definições para arvore genérica
 
 #define ARVORE_H_
 
+#include "bitmap.h"
+
 /**
  * Tipo Árvore:
  * Será usada para a codificação dos caracteres em um texto;
@@ -103,13 +105,13 @@ int Arvore_NumFolhas(Arvore* arvore);
 int Arvore_Pertence(Arvore* raiz, unsigned char* c);
 
 /**
- * Função que retorna o caminho da raiz até um dado nó:
- * Inputs: nó raiz e nó alvo;
- * Output: string com os dados de cada nó no caminho
- * Condições: ambas as árvores existentes e alocadas;
- * Efeitos Colaterais: nenhum; 
+ * Função que retorna, em um bitmap, o caminho da raiz até um dado nó:
+ * Inputs: bitmap, nó raiz, primeira posição onde ficará a sequncia no bitmap e nó alvo;
+ * Output: nenhum;
+ * Condições: ambas as árvores e bitmap existentes e alocadas;
+ * Efeitos Colaterais: bitmap contem o caminho, pos é incrementado; 
 */
-unsigned char* Arvore_Caminho(Arvore* raiz, unsigned char* c);
+void Arvore_Caminho(bitmap* map, Arvore* raiz, unsigned int pos, unsigned char* c);
 
 /**
  * Função que destrói uma árvore da memória:

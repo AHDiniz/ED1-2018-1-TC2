@@ -120,13 +120,20 @@ static void InsereArvoreOrdenado(Lista* l, Arvore* arvore)
 */
 static void ImprimeArvore(Arvore* arvore, FILE* output)
 {
-    if(Arvore_EhFolha(arvore))
+    if(Arvore_EhFolha(arvore)) // se a árvore for uma folha
     {
-        fprintf(output, "0");
-        for(i = 0 ; i < 8 ; i++)
+        fprintf(output, "0"); // imprime 0 (codigo para folha)
+        // Imprime o char binário utilizando aritimética de ponteiro
+        for(i = 0 ; i < 8 ; i++) // percorre o binário
         {
-            fprintf(output, "%u", );
+            fprintf(output, "%u", Arvore_Caracter(arvore) +i); // imprime o bit
         }
+    }
+    else // se a árvore for um nó
+    {
+        fprintf(output, "1"); // imprime 1 (codigo para nó)
+        ImprimeArvore(Arvore_ArvoreEsquerda(arvore),output); // imprime a árvore da esquerda
+        ImprimeArvore(Arvore_ArvoreDireita(arvore),output); // imprime a árvore da direita
     }
 }
 
@@ -142,12 +149,20 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
 
     Lista *listaArvores = Lista_NovaLista("Arvore"); // Inicializando a lista de árvores
 
+    // Inicializando bitmap para converter caracteres em binário
+    bitmap map = bitmapInit(9); // inicializando bitmap
+    for(i = 0 ; i < 8 ; i++) // inicializando seu conteudo
+    {
+        bitmapAppendLeastSignificantBit(&map,0);
+    }
+    bitmapAppendLeastSignificantBit(&map,'\0'); // incluindo \0 no fim para permitir cópia do conteudo via strcpy
+
     for(i = 0 ; i < ASCII_TAM ; i++) // Varrendo todo vetor de caracteres
     {
         if(pesos[i] > 0) // Encontrando os caracteres presentes no arquivo
         {
-            // Inserindo esses caracteres numa folha e a folha na lista de árvores (ordenada segundo os pesos)
-            InsereArvoreOrdenado(listaArvores, Arvore_CriaFolha(i,pesos[i]));
+            ConverteParaBinario(&map,i); // convertendo-os para binário
+            InsereArvoreOrdenado(listaArvores, Arvore_CriaFolha(bitmapGetContents(map),pesos[i])); // inserindo os caracteres em binário na lista, ordenados segundo o peso
         }
     }
 
@@ -172,14 +187,17 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
     return tr;
 }
 
-/**
- * Função de impressão do arquivo compactado:
- * Input: arvore de Huffman para o arquivo e nome do arquivo a ser compactado (com extensão .txt);
- * Output: arquivo compactado;
- * Condições: arvore válida e arquivo existe;
- * Efeitos Colaterais: nenhum;
-*/
-void Compactador_Compacta(Arvore* arvoreHuffman, char* arquivo);
+// Compactando e imprimindo o arquivo
+void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
+{
+    FILE* output = fopen(saida, "w");
+
+    ImprimeArvore(arvoreHuffman,output);
+
+
+
+    fclose(output);
+}
 
 /**
  * Função de descompactação de um arquivo:

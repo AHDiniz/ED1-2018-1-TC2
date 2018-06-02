@@ -15,27 +15,27 @@ struct arvore
 {
     Arvore* esq;
     Arvore* dir;
-    unsigned char caracter;
+    unsigned char caracter[8];
     int ocorrencias;
 };
 
 // Criando uma folha (árvore sem nós filhos):
-Arvore* Arvore_CriaFolha(unsigned char caracter, int ocorrencias)
+Arvore* Arvore_CriaFolha(unsigned char* caracter, int ocorrencias)
 {
     Arvore* a = (Arvore*)malloc(sizeof(Arvore)); // Alocando espaço na memória dinamicamente
     // Populando os campos da estrutura:
-    a->caracter = caracter;
+    strcpy(a->caracter,caracter);
     a->ocorrencias = ocorrencias;
     a->dir = a->esq = NULL;
     return a; // Retornando o nó
 }
 
 // Criando uma árvore com nós filhos:
-Arvore* Arvore_CriaArvore(unsigned char caracter, int ocorrencias, Arvore* esq, Arvore* dir)
+Arvore* Arvore_CriaArvore(int ocorrencias, Arvore* esq, Arvore* dir)
 {
     Arvore* a = (Arvore*)malloc(sizeof(Arvore)); // Alocando espaço na memória dinamicamente
     // Populando os campos da estrutura:
-    a->caracter = caracter;
+    a->caracter = NULL;
     a->ocorrencias = ocorrencias;
     a->esq = esq;
     a->dir = dir;
@@ -43,7 +43,7 @@ Arvore* Arvore_CriaArvore(unsigned char caracter, int ocorrencias, Arvore* esq, 
 }
 
 // Retorna o caracter de uma árvore:
-unsigned char Arvore_Caracter(Arvore* arvore)
+unsigned char* Arvore_Caracter(Arvore* arvore)
 {
     return arvore->caracter;
 }
@@ -52,6 +52,18 @@ unsigned char Arvore_Caracter(Arvore* arvore)
 int Arvore_Ocorrencias(Arvore* arvore)
 {
     return arvore->ocorrencias;
+}
+
+// Retorna a árvore da direita de uma árvore
+Arvore* Arvore_ArvoreDireita(Arvore* arvore)
+{
+    return arvore->dir;
+}
+
+// Retorna a árvore da esquerda de uma árvore
+Arvore* Arvore_ArvoreEsquerda(Arvore* arvore)
+{
+    return arvore->esq;
 }
 
 // Verificando se uma árvore é um nó folha:
@@ -73,26 +85,21 @@ int Arvore_Pertence(Arvore* raiz, unsigned char* c)
 {
     if(raiz == NULL)
         return 0;
-    if (raiz->caracter == c)
+    if (Arvore_EhFolha(raiz) && strcmp(raiz->caracter,c))
         return 1;
     return Arvore_Pertence(raiz->esq, c) || Arvore_Pertence(raiz->dir, c);
 }
 
-// Caminho da raiz até o nó:
-
+// Verificando o caminho até um determinado nó da árvore
+unsigned char* Arvore_Caminho(Arvore* raiz, unsigned char* c);
 
 // Apagando a árvore:
 Arvore* Arvore_DestroiArvore(Arvore* raiz)
 {
-    if (Arvore_EhFolha(raiz)) // Verificando se é um nó folha
-        free(raiz);
-    else // Se não for um nó folha
-    {
-        if (raiz->esq != NULL)
-            Arvore_DestroiArvore(raiz->esq); // Destruindo a subárvore da esquerda
-        if (raiz->dir != NULL)
-            Arvore_DestroiArvore(raiz->dir); // Destruindo a subárvore da direita
-        free(raiz);
-    }
+    if (raiz->esq != NULL)
+        Arvore_DestroiArvore(raiz->esq); // Destruindo a subárvore da esquerda
+    if (raiz->dir != NULL)
+        Arvore_DestroiArvore(raiz->dir); // Destruindo a subárvore da direita
+    free(raiz);
     return NULL;
 }

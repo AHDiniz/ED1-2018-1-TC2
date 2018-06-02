@@ -28,7 +28,7 @@ typedef struct arvore Arvore;
  * Condições: nenhuma;
  * Efeitos Colaterais: nenhum;
 */
-Arvore* Arvore_CriaFolha(unsigned char caracter, int ocorrencias);
+Arvore* Arvore_CriaFolha(unsigned char* caracter, int ocorrencias);
 
 /**
  * Função que cria uma árvore:
@@ -37,7 +37,7 @@ Arvore* Arvore_CriaFolha(unsigned char caracter, int ocorrencias);
  * Condições: subárvores existentes e alocadas;
  * Efeitos Colaterais: nenhum;
 */
-Arvore* Arvore_CriaArvore(unsigned char caracter, int ocorrencias, Arvore* esq, Arvore* dir);
+Arvore* Arvore_CriaArvore(int ocorrencias, Arvore* esq, Arvore* dir);
 
 /**
  * Função que retorna o caracter de uma árvore:
@@ -46,7 +46,7 @@ Arvore* Arvore_CriaArvore(unsigned char caracter, int ocorrencias, Arvore* esq, 
  * Condições: árvore existente e alocada;
  * Efeitos Colaterais: nenhum;
 */
-unsigned char Arvore_Caracter(Arvore* arvore);
+unsigned char* Arvore_Caracter(Arvore* arvore);
 
 /**
  * Função que retorna o valor ocorrências de uma árvore:
@@ -56,6 +56,24 @@ unsigned char Arvore_Caracter(Arvore* arvore);
  * Efeitos Colaterais: nenhum;
 */
 int Arvore_Ocorrencias(Arvore* arvore);
+
+/**
+ * Função que retorna a árvore da direita de uma árvore:
+ * Input: ponteiro para a árvore;
+ * Output: árvore da direita;
+ * Condições: árvore existente e alocada;
+ * Efeitos Colaterais: nenhum;
+*/
+Arvore* Arvore_ArvoreDireita(Arvore* arvore);
+
+/**
+ * Função que retorna a árvore da esquerda de uma árvore:
+ * Input: ponteiro para a árvore;
+ * Output: árvore da esquerda;
+ * Condições: árvore existente e alocada;
+ * Efeitos Colaterais: nenhum;
+*/
+Arvore* Arvore_ArvoreEsquerda(Arvore* arvore);
 
 /**
  * Função que verifica se a árvore é uma folha ou não:
@@ -91,7 +109,7 @@ int Arvore_Pertence(Arvore* raiz, unsigned char* c);
  * Condições: ambas as árvores existentes e alocadas;
  * Efeitos Colaterais: nenhum; 
 */
-unsigned char* Arvore_Caminho(Arvore* raiz, Arvore* no);
+unsigned char* Arvore_Caminho(Arvore* raiz, unsigned char* c);
 
 /**
  * Função que destrói uma árvore da memória:

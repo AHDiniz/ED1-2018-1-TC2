@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
         char *novoArquivo = (char*) malloc(strlen(argv[2]) +2); // alocando espaço para o nome
         TrocaTXT(novoArquivo, argv[2]); // trocando .txt por .comp
 
-        Compactador_Compacta(arvHuff,novoArquivo); // compactando e impimindo num arquivo com o novo nome
+        Compactador_Compacta(arvHuff, argv[2], novoArquivo); // compactando e impimindo num arquivo com o novo nome
 
         free(novoArquivo); // liberando nome
         Arvore_DestroiArvore(arvHuff); // liberando árvore

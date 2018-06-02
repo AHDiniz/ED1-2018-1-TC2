@@ -28,7 +28,7 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo);
  * Condições: arvore válida e arquivo existe;
  * Efeitos Colaterais: nenhum;
 */
-void Compactador_Compacta(Arvore* arvorHuffman, char* arquivo);
+void Compactador_Compacta(Arvore* arvoreHuffman, char* arquivo);
 
 /**
  * Função de descompactação de um arquivo:

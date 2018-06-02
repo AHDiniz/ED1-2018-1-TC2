@@ -9,6 +9,7 @@ compactador.c: implementações para compactador
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "lista.h"
 #include "bitmap.h"
 #include "compactador.h"
@@ -19,23 +20,43 @@ int i; // Variavel global de incrementação
 
 /**
  * Função auxiliar que converte um caracter sem sinal para binário:
- * Input: caracter sem sinal;
- * Output: bitmap contendo o caracter convertido;
- * Condições: nenhuma;
+ * Input: bitmap que armazenará o binário e um caracter sem sinal;
+ * Output: bitmap contendo o caracter convertido (posição 0 mais significativa);
+ * Condições: bitmap existe e tem tamanho máximo >= 8;
+ * Efeitos Colaterais: bitmap contem o binário de 8 bits;
+*/
+static void ConverteParaBinario(bitmap* map, unsigned char a)
+{
+    unsigned int num; // armazena o valor do caracter em inteiro decimal
+
+    // Realizando divisões por 2 e armazenado os restos no bitmap
+    for(i = 7, num = (unsigned int) a ; i >= 0 ; num /= 2, i--)
+    {
+        bitmapSetBit(map,i,num % 2);
+    }
+}
+
+/**
+ * Função auxiliar que converte um binário para caracter sem sinal:
+ * Input: bitmap contendo um binário de 8 bits;
+ * Output: o caracter convertido;
+ * Condições: bitmap existente e válido;
  * Efeitos Colaterais: nenhum;
 */
-bitmap ConverteParaBinario(unsigned char a)
+static unsigned char ConverteParaCharacter(bitmap* map)
 {
-    bitmap map = bitmapInit(8); // inicializando bitmap
-    int num; // armazena o valor do caracter em inteiro decimal
+    unsigned int num; // armazena o valor do caracter em inteiro decimal
 
-    // Realizando divisões por 2 e armazenado o resto no bitmap
-    for(i = 8, num = (int) a ; num > 0 ; num / 2, i--)
+    // Percorrendo os 8 primeiros bits do bitmap
+    for(i = 0, num = 0 ; i < 8 ; i++)
     {
-        bitmapSetBit(&map,i,num % 2);
+        if(bitmapGetBit(*map, i) == 1) // se o bit for 1
+        {
+            num += pow(2.0, 7 - i); // soma à conversão a respectiva potência de 2
+        }
     }
 
-    return map;
+    return (unsigned char) num; // retorna caracter sem sinal
 }
 
 /**
@@ -45,9 +66,9 @@ bitmap ConverteParaBinario(unsigned char a)
  * Condições: arquivo existe;
  * Efeitos Colaterais: nenhum;
 */
-unsigned char* MontaVetorPesos(char* arquivo)
+static int* MontaVetorPesos(char* arquivo)
 {
-    unsigned char pesos[ASCII_TAM]; // vetor que guarda o peso do caracter na masma posição de sua posição da tabela ASCII
+    int pesos[ASCII_TAM]; // vetor que guarda o peso do caracter na masma posição de sua posição da tabela ASCII
     unsigned char c; // auxiliar que guarda o caracter
 
     // Inicializando ocorrencias
@@ -76,7 +97,7 @@ unsigned char* MontaVetorPesos(char* arquivo)
  * Condições: lista e árvore existem;
  * Efeitos Colaterais: árvore inclusa à lista mantendo-a ordenada;
 */
-void InsereArvoreOrdenado(Lista* l, Arvore* arvore)
+static void InsereArvoreOrdenado(Lista* l, Arvore* arvore)
 {
     for(i = 0 ; i < Lista_TamanhoLista(l) ; i++) // Varrendo toda a lista
     {
@@ -90,17 +111,36 @@ void InsereArvoreOrdenado(Lista* l, Arvore* arvore)
     Lista_ListaAdd(l, Lista_NovoItem("Arvore", arvore), i); // Inserindo árvore em sua devida posição
 }
 
-// Criando a árvore de Huffman:
+/**
+ * Função auxiliar que imprime a árvore de Huffman no arquivo especificado:
+ * Input: árvore e arquivo;
+ * Output: nenhum;
+ * Condições: árvore e arquivo existem;
+ * Efeitos Colaterais: árvore é codificada e impressa no arquivo;
+*/
+static void ImprimeArvore(Arvore* arvore, FILE* output)
+{
+    if(Arvore_EhFolha(arvore))
+    {
+        fprintf(output, "0");
+        for(i = 0 ; i < 8 ; i++)
+        {
+            fprintf(output, "%u", );
+        }
+    }
+}
+
+// Lendo arquivo e montando a árvore de Huffman:
 Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
 {
-    // Variáveis auxiliares para criação da árvore de Huffman
+    // Variáveis auxiliares para criação da árvore
     Arvore *t1;
     Arvore *t2;
     Arvore *tr;
 
-    unsigned char *pesos = MontaVetorPesos(arquivo); // Encontrando o numero de ocorrencias de cada caracter no arquivo
+    int *pesos = MontaVetorPesos(arquivo); // Encontrando o numero de ocorrencias de cada caracter no arquivo
 
-    Lista *listaArvores = Lista_NovaLista("Arvore"); // Preparando a lista de árvores
+    Lista *listaArvores = Lista_NovaLista("Arvore"); // Inicializando a lista de árvores
 
     for(i = 0 ; i < ASCII_TAM ; i++) // Varrendo todo vetor de caracteres
     {
@@ -112,7 +152,7 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
     }
 
     // Criando a árvore de Huffman
-    while(Lista_TamanhoLista(listaArvores) > 1)
+    while(Lista_TamanhoLista(listaArvores) > 1) // inicio do loop
     {
         t1 = (Arvore*) Lista_AchaItem(listaArvores, 0); // t1 recebe a primeira árvore da lista
         t2 = (Arvore*) Lista_AchaItem(listaArvores, 1); // t2 recebe a segunda árvore da lista
@@ -139,7 +179,7 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
  * Condições: arvore válida e arquivo existe;
  * Efeitos Colaterais: nenhum;
 */
-void Compactador_Compacta(Arvore* arvorHuffman, char* arquivo);
+void Compactador_Compacta(Arvore* arvoreHuffman, char* arquivo);
 
 /**
  * Função de descompactação de um arquivo:

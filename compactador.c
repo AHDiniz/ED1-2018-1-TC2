@@ -159,8 +159,8 @@ static void ImprimeArvore(Arvore* arvore, FILE* output)
     else // se a árvore for um nó
     {
         fprintf(output, "1"); // imprime 1 (codigo para nó)
-        ImprimeArvore(Arvore_ArvoreEsquerda(arvore),output); // imprime a árvore da esquerda
-        ImprimeArvore(Arvore_ArvoreDireita(arvore),output); // imprime a árvore da direita
+        ImprimeArvore(Arvore_ArvoreEsquerda(arvore), output); // imprime a árvore da esquerda
+        ImprimeArvore(Arvore_ArvoreDireita(arvore), output); // imprime a árvore da direita
     }
 }
 
@@ -178,15 +178,15 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
 
     // Inicializando bitmap para converter caracteres em binário
     bitmap map = bitmapInit(9); // inicializando bitmap
-    InicializaBitmap(&map,8); // inicializando seus 8 primeiros bits como 0
-    bitmapAppendLeastSignificantBit(&map,'\0'); // incluindo \0 no fim para permitir cópia do conteudo via strcpy
+    InicializaBitmap(&map, 8); // inicializando seus 8 primeiros bits como 0
+    bitmapAppendLeastSignificantBit(&map, '\0'); // incluindo \0 no fim para permitir cópia do conteudo via strcpy
 
-    for(i = 0 ; i < ASCII_TAM ; i++) // Varrendo todo vetor de caracteres
+    for(i = 0; i < ASCII_TAM; i++) // Varrendo todo vetor de caracteres
     {
         if(pesos[i] > 0) // Encontrando os caracteres presentes no arquivo
         {
-            ConverteParaBinario(&map,i); // convertendo-os para binário
-            InsereArvoreOrdenado(listaArvores, Arvore_CriaFolha(bitmapGetContents(map),pesos[i])); // inserindo os caracteres em binário na lista, ordenados segundo o peso
+            ConverteParaBinario(&map, i); // convertendo-os para binário
+            InsereArvoreOrdenado(listaArvores, Arvore_CriaFolha(bitmapGetContents(map), pesos[i])); // inserindo os caracteres em binário na lista, ordenados segundo o peso
         }
     }
 
@@ -197,16 +197,16 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
         t2 = (Arvore*) Lista_AchaItem(listaArvores, 1); // t2 recebe a segunda árvore da lista
 
         // criando nova árvore cujo peso é a soma dos pesos de t1 e t2 e suas árvores esquerda e direita são t1 e t2, respectivamente
-        tr = Arvore_CriaArvore('\0', Arvore_Ocorrencias(t1) + Arvore_Ocorrencias(t2) ,t1,t2);
+        tr = Arvore_CriaArvore((int)Arvore_Ocorrencias(t1) + Arvore_Ocorrencias(t2), t1, t2);
 
-        Lista_ListaRemove(listaArvores,0,NULL); // removendo t1 da lista
-        Lista_ListaRemove(listaArvores,1,NULL); // removendo t2 da lista
+        Lista_ListaRemove(listaArvores, 0, NULL); // removendo t1 da lista
+        Lista_ListaRemove(listaArvores, 1, NULL); // removendo t2 da lista
 
-        InsereArvoreOrdenado(listaArvores,tr); // inserindo tr na lista ordenadamente
+        InsereArvoreOrdenado(listaArvores, tr); // inserindo tr na lista ordenadamente
     } // loop encerra quando só houver uma árvore na lista. Essa é a árvore de Huffman
 
-    tr = (Arvore*) Lista_AchaItem(listaArvores,0); // tr recebe a árvore de Huffman
-    Lista_DestroiLista(listaArvores,NULL); // liberando memória da lista
+    tr = (Arvore*) Lista_AchaItem(listaArvores, 0); // tr recebe a árvore de Huffman
+    Lista_DestroiLista(listaArvores, NULL); // liberando memória da lista
 
     return tr;
 }
@@ -219,17 +219,17 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     unsigned char c; // variável auxiliar para leitura do arquivo
     int posicao; // vairiável auxiliar que armazena o tamanho em bits do carácter codificado
     bitmap caminho = bitmapInit(8); // bitmap auxiliar que guarda o carácter codificado
-    InicializaBitmap(&caminho,8); // inicializando todos os bits do bitmap como 0
+    InicializaBitmap(&caminho, 8); // inicializando todos os bits do bitmap como 0
 
-    ImprimeArvore(arvoreHuffman,output); // imprimindo primeiro a árvore codificada
+    ImprimeArvore(arvoreHuffman, output); // imprimindo primeiro a árvore codificada
 
     c = fgetc(input); // inicializando variável de incrementação
     while(c != EOF) // loop que percorre todo o arquivo
     {
         posicao = 0; // inicializando/reinicializando posição
-        Arvore_Caminho(&caminho,arvoreHuffman,&posicao,c); // encontrando o valor codificado do carácter
+        Arvore_Caminho(&caminho, arvoreHuffman, (unsigned int*)&posicao, (unsigned char*)c); // encontrando o valor codificado do carácter
 
-        ImprimeBinario(output,bitmapGetContents(caminho),posicao); // imprimindo o valor encontrado
+        ImprimeBinario(output, bitmapGetContents(caminho), posicao); // imprimindo o valor encontrado
 
         c = fgetc(input); // atualizando variável de incrementação
     }

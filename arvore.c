@@ -25,7 +25,7 @@ Arvore* Arvore_CriaFolha(unsigned char* caracter, int ocorrencias)
     Arvore* a = (Arvore*)malloc(sizeof(Arvore)); // Alocando espaço na memória dinamicamente
     // Populando os campos da estrutura:
     a->caracter = (unsigned char*)malloc(9);
-    strcpy(a->caracter,caracter);
+    strcpy(a->caracter, caracter);
     a->ocorrencias = ocorrencias;
     a->dir = a->esq = NULL;
     return a; // Retornando o nó

@@ -227,7 +227,7 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     while(c != EOF) // loop que percorre todo o arquivo
     {
         posicao = 0; // inicializando/reinicializando posição
-        Arvore_Caminho(&caminho, arvoreHuffman, (unsigned int*)&posicao, (unsigned char*)c); // encontrando o valor codificado do carácter
+        // Arvore_Caminho(&caminho, arvoreHuffman, (unsigned int*)&posicao, (unsigned char*)c); // encontrando o valor codificado do carácter
 
         ImprimeBinario(output, bitmapGetContents(caminho), posicao); // imprimindo o valor encontrado
 

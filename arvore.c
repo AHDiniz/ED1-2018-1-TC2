@@ -19,6 +19,47 @@ struct arvore
     int ocorrencias;
 };
 
+// Função auxiliar para achar caminho:
+static int Arvore_CaminhoAux(Arvore* raiz, Arvore* alvo, Lista* caminho)
+{
+    if (raiz->caracter == alvo->caracter)
+    {
+        // Se a raiz da árvore for o alvo, ela é adicionada na lista:
+        Item* item = Lista_NovoItem("Arvore*", raiz);
+        Lista_ListaAdd(caminho, item, (Lista_TamanhoLista(caminho) - 1 < 0)? 0 : Lista_TamanhoLista(caminho) - 1);
+        return 1;
+    }
+
+    int ret = 0, flag = 0; // Variáveis auxiliares
+
+    if (raiz->esq != NULL)
+    {
+        // Adicionando a subárvore da esquerda no caminho:
+        Item* esq = Lista_NovoItem("Arvore*", raiz->esq);
+        Lista_ListaAdd(caminho, esq, Lista_TamanhoLista(caminho) - 1);
+        flag = 1; // Isso serve para garantir que não serão adicionandos nós que não pertencem ao caminho
+        ret = Arvore_CaminhoAux(raiz->esq, alvo, caminho); // Procurando o alvo na subárvore da esquerda
+    }
+
+    if (!ret) // Se o alvo não está na subárvore da esquerda:
+    {
+        if (raiz->dir != NULL)
+        {
+            if (!flag) // Se a subárvore da esquerda não pertence ao caminho:
+            {
+                Item* dir = Lista_NovoItem("Arvore*", raiz->dir);
+                Lista_ListaAdd(caminho, dir, Lista_TamanhoLista(caminho) - 1);
+            }
+            ret = Arvore_CaminhoAux(raiz->dir, alvo, caminho); // Adicionando a subárvore da direita na lista
+        }
+    }
+
+    if (!ret)
+        Lista_ListaRemove(caminho, Lista_TamanhoLista(caminho) - 1, NULL); // Removendo a subárvore da lista s/ destruí-la
+    
+    return ret;
+}
+
 // Criando uma folha (árvore sem nós filhos):
 Arvore* Arvore_CriaFolha(unsigned char* caracter, int ocorrencias)
 {
@@ -88,7 +129,7 @@ int Arvore_Pertence(Arvore* raiz, unsigned char* c)
         return 0;
     if (Arvore_EhFolha(raiz))
     {
-        if(!strcmp(raiz->caracter,c))
+        if(!strcmp(raiz->caracter, c))
             return 1;
         else
             return 0;
@@ -97,24 +138,13 @@ int Arvore_Pertence(Arvore* raiz, unsigned char* c)
 }
 
 // Verificando o caminho até um determinado nó da árvore
-void Arvore_Caminho(bitmap* map, Arvore* raiz, unsigned int* pos, unsigned char* c)
+Lista* Arvore_Caminho(Arvore* raiz, Arvore* alvo)
 {
-    Arvore* a = raiz;
-    while(!Arvore_EhFolha(a)) // enquanto não for um nó folha
-    {
-        if(Arvore_Pertence(a->esq,c)) // se estiver na árvore da esquerda
-        {
-            bitmapSetBit(map,*pos,0); // acrescenta 0 (codigo para esquerda) no bitmap na posição especificada
-            *pos += 1; // incrementa posição
-            a = a->esq; // continua o caminho na árvore da esquerda
-        }
-        else // se estiver na árvore da direita
-        {
-            bitmapSetBit(map,*pos,1); // acrescenta 1 (codigo para direita) no bitmap na posição especificada
-            *pos += 1; // incrementa posição
-            a = a->dir; // continua o caminho na árvore da direita
-        }
-    }
+    Lista* caminho = Lista_NovaLista("Arvore*");
+
+    Arvore_CaminhoAux(raiz, alvo, caminho);
+
+    return caminho;
 }
 
 // Apagando a árvore:

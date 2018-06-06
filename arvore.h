@@ -11,6 +11,7 @@ arvore.h: definições para arvore genérica
 #define ARVORE_H_
 
 #include "bitmap.h"
+#include "lista.h"
 
 /**
  * Tipo Árvore:
@@ -111,7 +112,7 @@ int Arvore_Pertence(Arvore* raiz, unsigned char* c);
  * Condições: ambas as árvores e bitmap existentes e alocadas;
  * Efeitos Colaterais: bitmap contem o caminho, pos é incrementado; 
 */
-void Arvore_Caminho(bitmap* map, Arvore* raiz, unsigned int* pos, unsigned char* c);
+Lista* Arvore_Caminho(Arvore *raiz, Arvore *alvo);
 
 /**
  * Função que destrói uma árvore da memória:

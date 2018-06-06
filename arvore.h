@@ -106,12 +106,12 @@ int Arvore_Pertence(Arvore* raiz, unsigned char* c);
 
 /**
  * Função que retorna, em um bitmap, o caminho da raiz até um dado nó:
- * Inputs: bitmap, nó raiz, primeira posição onde ficará a sequncia no bitmap e nó alvo;
+ * Inputs: bitmap, nó raiz, ponteiro para a primeira posição onde ficará a sequncia no bitmap e carácter do nó alvo (deve ser um carácter que esteja em uma única posição na árvore);
  * Output: nenhum;
  * Condições: ambas as árvores e bitmap existentes e alocadas;
  * Efeitos Colaterais: bitmap contem o caminho, pos é incrementado; 
 */
-void Arvore_Caminho(bitmap* map, Arvore* raiz, unsigned int pos, unsigned char* c);
+void Arvore_Caminho(bitmap* map, Arvore* raiz, unsigned int* pos, unsigned char* c);
 
 /**
  * Função que destrói uma árvore da memória:

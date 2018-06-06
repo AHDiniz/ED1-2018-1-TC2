@@ -15,7 +15,7 @@ struct arvore
 {
     Arvore* esq;
     Arvore* dir;
-    unsigned char caracter[8];
+    unsigned char* caracter;
     int ocorrencias;
 };
 
@@ -24,6 +24,7 @@ Arvore* Arvore_CriaFolha(unsigned char* caracter, int ocorrencias)
 {
     Arvore* a = (Arvore*)malloc(sizeof(Arvore)); // Alocando espaço na memória dinamicamente
     // Populando os campos da estrutura:
+    a->caracter = (unsigned char*)malloc(9);
     strcpy(a->caracter,caracter);
     a->ocorrencias = ocorrencias;
     a->dir = a->esq = NULL;
@@ -85,37 +86,51 @@ int Arvore_Pertence(Arvore* raiz, unsigned char* c)
 {
     if(raiz == NULL)
         return 0;
-    if (Arvore_EhFolha(raiz) && strcmp(raiz->caracter,c))
-        return 1;
+    if (Arvore_EhFolha(raiz))
+    {
+        if(!strcmp(raiz->caracter,c))
+            return 1;
+        else
+            return 0;
+    }
     return Arvore_Pertence(raiz->esq, c) || Arvore_Pertence(raiz->dir, c);
 }
 
 // Verificando o caminho até um determinado nó da árvore
-void Arvore_Caminho(bitmap* map, Arvore* raiz, unsigned int pos, unsigned char* c)
+void Arvore_Caminho(bitmap* map, Arvore* raiz, unsigned int* pos, unsigned char* c)
 {
-    if(Arvore_EhFolha(raiz)) // se for um nó folha
+    Arvore* a = raiz;
+    while(!Arvore_EhFolha(a)) // enquanto não for um nó folha
     {
-        return; // aborta a função
-    }
-    if(Arvore_Pertence(raiz->esq,c)) // se estiver na árvore da esquerda
-    {
-        bitmapSetBit(map,pos,0); // acrescenta 0 (codigo para esquerda) no bitmap na posição especificada
-        Arvore_Caminho(map,raiz->esq,++pos,c); // incrementa posição e continua o caminho na árvore da esquerda
-    }
-    else
-    {
-        bitmapSetBit(map,pos,1); // acrescenta 1 (codigo para direita) no bitmap na posição especificada
-        Arvore_Caminho(map,raiz->dir,++pos,c); // incrementa posição e continua o caminho na árvore da direita
+        if(Arvore_Pertence(a->esq,c)) // se estiver na árvore da esquerda
+        {
+            bitmapSetBit(map,*pos,0); // acrescenta 0 (codigo para esquerda) no bitmap na posição especificada
+            *pos += 1; // incrementa posição
+            a = a->esq; // continua o caminho na árvore da esquerda
+        }
+        else // se estiver na árvore da direita
+        {
+            bitmapSetBit(map,*pos,1); // acrescenta 1 (codigo para direita) no bitmap na posição especificada
+            *pos += 1; // incrementa posição
+            a = a->dir; // continua o caminho na árvore da direita
+        }
     }
 }
 
 // Apagando a árvore:
 Arvore* Arvore_DestroiArvore(Arvore* raiz)
 {
-    if (raiz->esq != NULL)
-        Arvore_DestroiArvore(raiz->esq); // Destruindo a subárvore da esquerda
-    if (raiz->dir != NULL)
-        Arvore_DestroiArvore(raiz->dir); // Destruindo a subárvore da direita
-    free(raiz);
+    if(Arvore_EhFolha(raiz)) // Verificando se a raiz é folha
+    {
+        free(raiz->caracter); // Liberando caracter
+    }
+    else
+    {
+        if (raiz->esq != NULL)
+            Arvore_DestroiArvore(raiz->esq); // Destruindo a subárvore da esquerda
+        if (raiz->dir != NULL)
+            Arvore_DestroiArvore(raiz->dir); // Destruindo a subárvore da direita
+    }
+    free(raiz); // Liberando árvore
     return NULL;
 }

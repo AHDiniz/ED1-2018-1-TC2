@@ -214,28 +214,28 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
 // Compactando e imprimindo o arquivo
 void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
 {
-    FILE* output = fopen(saida, "w");
-    FILE* input = fopen(entrada, "r");
-    unsigned char c;
-    int j;
-    bitmap caminho = bitmapInit(8);
-    InicializaBitmap(&caminho,8); // inicializando todos os seus bits como 0
+    FILE* output = fopen(saida, "w"); // abrindo arquivo de escrita
+    FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
+    unsigned char c; // variável auxiliar para leitura do arquivo
+    int posicao; // vairiável auxiliar que armazena o tamanho em bits do carácter codificado
+    bitmap caminho = bitmapInit(8); // bitmap auxiliar que guarda o carácter codificado
+    InicializaBitmap(&caminho,8); // inicializando todos os bits do bitmap como 0
 
-    ImprimeArvore(arvoreHuffman,output);
+    ImprimeArvore(arvoreHuffman,output); // imprimindo primeiro a árvore codificada
 
-    c = fgetc(input);
-    while(c != EOF)
+    c = fgetc(input); // inicializando variável de incrementação
+    while(c != EOF) // loop que percorre todo o arquivo
     {
-        j = 0;
-        Arvore_Caminho(&caminho,arvoreHuffman,j,c);
+        posicao = 0; // inicializando/reinicializando posição
+        Arvore_Caminho(&caminho,arvoreHuffman,&posicao,c); // encontrando o valor codificado do carácter
 
-        ImprimeBinario(output,bitmapGetContents(caminho),j-1);
+        ImprimeBinario(output,bitmapGetContents(caminho),posicao); // imprimindo o valor encontrado
 
-        c = fgetc(input);
+        c = fgetc(input); // atualizando variável de incrementação
     }
 
-    fclose(input);
-    fclose(output);
+    fclose(input); // fechando arquivo de leitura
+    fclose(output); // fechando arquivo de escrita
 }
 
 /**

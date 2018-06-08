@@ -34,24 +34,9 @@ static void InicializaBitmap(bitmap* map, unsigned int n)
 }
 
 /**
- * Função auxiliar que imprime n posições de um binário num arquivo:
- * Input: arquivo, binário e número de posições;
- * Output: nunhum;
- * Condições: arquivo aberto, binário existe e tem tamanho máximo >= n;
- * Efeitos Colaterais: arquivo contem os bits impressos;
-*/
-static void ImprimeBinario(FILE* arquivo, unsigned char* bits, unsigned int n)
-{
-    for(i = 0 ; i < n ; i++) // percorre o binário
-    {
-        fprintf(arquivo, "%u", bits +i); // imprime cada bit
-    }
-}
-
-/**
  * Função auxiliar que converte um caracter sem sinal para binário:
  * Input: bitmap que armazenará o binário e um caracter sem sinal;
- * Output: bitmap contendo o caracter convertido (posição 0 mais significativa);
+ * Output: bitmap contendo o caracter convertido em seus 8 primeiros bits (posição 0 mais significativa);
  * Condições: bitmap existe e tem tamanho máximo >= 8;
  * Efeitos Colaterais: bitmap contem o binário de 8 bits;
 */
@@ -69,7 +54,7 @@ static void ConverteParaBinario(bitmap* map, unsigned char a)
 /**
  * Função auxiliar que converte um binário para caracter sem sinal:
  * Input: bitmap contendo um binário de 8 bits;
- * Output: o caracter convertido;
+ * Output: o caracter convertido dos 8 primeiros bits do bitmap;
  * Condições: bitmap existente e válido;
  * Efeitos Colaterais: nenhum;
 */
@@ -87,6 +72,24 @@ static unsigned char ConverteParaCharacter(bitmap* map)
     }
 
     return (unsigned char) num; // retorna caracter sem sinal
+}
+
+/**
+ * Função auxiliar que imprime os 8 primeiros bits de uma lista como carácter codificado no arquivo especificado:
+ * Input: bitmap, lista e arquivo;
+ * Output: nenhum;
+ * Condições: bitmap com 8 bits significativos, lista tipo int com os bits e arquivo existente;
+ * Efeitos Colaterais: os 8 primeiros bits são codificados e impressos no arquivo;
+*/
+static void ImprimeCaracter(bitmap* bitmap, Lista* lista, FILE* output)
+{
+    for(i = 0 ; i < 8 ; i++)
+    {
+        bitmapSetBit(bitmap,i,(int) Lista_AchaItem(lista,0));
+        Lista_ListaRemove(lista,0,NULL);
+    }
+
+    fputc(ConverteParaCharacter(bitmap),output);
 }
 
 /**
@@ -142,27 +145,12 @@ static void InsereArvoreOrdenado(Lista* l, Arvore* arvore)
 }
 
 /**
- * Função auxiliar que imprime a árvore de Huffman no arquivo especificado:
- * Input: árvore e arquivo;
+ * Função auxiliar que monta uma lista com os caminhos para cada:
+ * Input: lista e árvore;
  * Output: nenhum;
- * Condições: árvore e arquivo existem;
- * Efeitos Colaterais: árvore é codificada e impressa no arquivo;
+ * Condições: lista e árvore existem;
+ * Efeitos Colaterais: árvore inclusa à lista mantendo-a ordenada;
 */
-static void ImprimeArvore(Arvore* arvore, FILE* output)
-{
-    if(Arvore_EhFolha(arvore)) // se a árvore for uma folha
-    {
-        fprintf(output, "0"); // imprime 0 (codigo para folha)
-        // Imprime o char binário
-        ImprimeBinario(output, Arvore_Caracter(arvore), 8);
-    }
-    else // se a árvore for um nó
-    {
-        fprintf(output, "1"); // imprime 1 (codigo para nó)
-        ImprimeArvore(Arvore_ArvoreEsquerda(arvore), output); // imprime a árvore da esquerda
-        ImprimeArvore(Arvore_ArvoreDireita(arvore), output); // imprime a árvore da direita
-    }
-}
 
 // Lendo arquivo e montando a árvore de Huffman:
 Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
@@ -176,17 +164,11 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
 
     Lista *listaArvores = Lista_NovaLista("Arvore"); // Inicializando a lista de árvores
 
-    // Inicializando bitmap para converter caracteres em binário
-    bitmap map = bitmapInit(9); // inicializando bitmap
-    InicializaBitmap(&map, 8); // inicializando seus 8 primeiros bits como 0
-    bitmapAppendLeastSignificantBit(&map, '\0'); // incluindo \0 no fim para permitir cópia do conteudo via strcpy
-
     for(i = 0; i < ASCII_TAM; i++) // Varrendo todo vetor de caracteres
     {
         if(pesos[i] > 0) // Encontrando os caracteres presentes no arquivo
         {
-            ConverteParaBinario(&map, i); // convertendo-os para binário
-            InsereArvoreOrdenado(listaArvores, Arvore_CriaFolha(bitmapGetContents(map), pesos[i])); // inserindo os caracteres em binário na lista, ordenados segundo o peso
+            InsereArvoreOrdenado(listaArvores, Arvore_CriaFolha(i, pesos[i])); // inserindo os caracteres na lista, ordenados segundo o peso
         }
     }
 
@@ -217,22 +199,13 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     FILE* output = fopen(saida, "w"); // abrindo arquivo de escrita
     FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
     unsigned char c; // variável auxiliar para leitura do arquivo
-    int posicao; // vairiável auxiliar que armazena o tamanho em bits do carácter codificado
-    bitmap caminho = bitmapInit(8); // bitmap auxiliar que guarda o carácter codificado
-    InicializaBitmap(&caminho, 8); // inicializando todos os bits do bitmap como 0
+    Lista* caminho = 
+    Lista* bits = Lista_NovaLista("int"); // lista auxiliar que guarda a sequência de bits a serem impressos
+    bitmap caracter = bitmapInit(8); // bitmap auxiliar que guarda o carácter a ser impresso
+    InicializaBitmap(&caracter, 8); // inicializando todos os bits do bitmap como 0
 
-    ImprimeArvore(arvoreHuffman, output); // imprimindo primeiro a árvore codificada
+    // Imprimindo primeiro a árvore codificada
 
-    c = fgetc(input); // inicializando variável de incrementação
-    while(c != EOF) // loop que percorre todo o arquivo
-    {
-        posicao = 0; // inicializando/reinicializando posição
-        // Arvore_Caminho(&caminho, arvoreHuffman, (unsigned int*)&posicao, (unsigned char*)c); // encontrando o valor codificado do carácter
-
-        ImprimeBinario(output, bitmapGetContents(caminho), posicao); // imprimindo o valor encontrado
-
-        c = fgetc(input); // atualizando variável de incrementação
-    }
 
     fclose(input); // fechando arquivo de leitura
     fclose(output); // fechando arquivo de escrita

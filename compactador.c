@@ -13,10 +13,9 @@ compactador.c: implementações para compactador
 #include "lista.h"
 #include "bitmap.h"
 #include "compactador.h"
+#include "listacaminho.h"
 
 #define ASCII_TAM 256
-
-int i; // Variavel global de incrementação
 
 /**
  * Função auxiliar que inicializa n posições de um bitmap:
@@ -27,6 +26,7 @@ int i; // Variavel global de incrementação
 */
 static void InicializaBitmap(bitmap* map, unsigned int n)
 {
+    int i; // Variavel de incrementação
     for(i = 0 ; i < n ; i++) // inicializando conteudo do bitmap como 0
     {
         bitmapAppendLeastSignificantBit(map,0);
@@ -42,6 +42,7 @@ static void InicializaBitmap(bitmap* map, unsigned int n)
 */
 static void ConverteParaBinario(bitmap* map, unsigned char a)
 {
+    int i; // Variavel de incrementação
     unsigned int num; // armazena o valor do caracter em inteiro decimal
 
     // Realizando divisões por 2 e armazenado os restos no bitmap
@@ -60,6 +61,7 @@ static void ConverteParaBinario(bitmap* map, unsigned char a)
 */
 static unsigned char ConverteParaCharacter(bitmap* map)
 {
+    int i; // Variavel de incrementação
     unsigned int num; // armazena o valor do caracter em inteiro decimal
 
     // Percorrendo os 8 primeiros bits do bitmap
@@ -75,6 +77,35 @@ static unsigned char ConverteParaCharacter(bitmap* map)
 }
 
 /**
+ * Função auxiliar que codifica uma árvore para ser impressa e a armazena numa lista de inteiros:
+ * Input: lista de inteiros e árvore;
+ * Output: nenhum;
+ * Condições: lista tipo int e árvore existente;
+ * Efeitos Colaterais: a lista recebe a árvore codificada no final;
+*/
+static void CompactaArvore(Lista* lista, Arvore* arvore)
+{
+    if(Arvore_EhFolha(arvore)) // se a árvore for uma folha
+    {
+       int i; // Variavel de incrementação
+       bitmap map = bitmapInit(8); // bitmap para auxiliar a conversão do carácter para binário
+       InicializaBitmap(&map,8); // inicializa o bitmap
+       ConverteParaBinario(&map,Arvore_Caracter(arvore)); // converte o carácter para binário
+       Lista_ListaAdd(lista,Lista_NovoItem("int",0),0); // insere 0 (codigo para folha) na lista
+       for(i = 0 ; i < 8 ; i++) // insere em seguida o caracter em binário
+       {
+           Lista_ListaAdd(lista,Lista_NovoItem("int",bitmapGetBit(map,i)),Lista_TamanhoLista(lista) -1);
+       }
+    }
+    else // se a árvore for um nó
+    {
+        Lista_ListaAdd(lista,Lista_NovoItem("int",1),Lista_TamanhoLista(lista) -1); // insere 1 (codigo para nó) na lista
+        CompactaArvore(lista,Arvore_ArvoreEsquerda(arvore)); // compacta a árvore da esquerda
+        CompactaArvore(lista,Arvore_ArvoreDireita(arvore)); // compacta a árvore da direita
+    }
+}
+
+/**
  * Função auxiliar que imprime os 8 primeiros bits de uma lista como carácter codificado no arquivo especificado:
  * Input: bitmap, lista e arquivo;
  * Output: nenhum;
@@ -83,6 +114,7 @@ static unsigned char ConverteParaCharacter(bitmap* map)
 */
 static void ImprimeCaracter(bitmap* bitmap, Lista* lista, FILE* output)
 {
+    int i; // Variavel de incrementação
     for(i = 0 ; i < 8 ; i++)
     {
         bitmapSetBit(bitmap,i,(int) Lista_AchaItem(lista,0));
@@ -101,6 +133,7 @@ static void ImprimeCaracter(bitmap* bitmap, Lista* lista, FILE* output)
 */
 static int* MontaVetorPesos(char* arquivo)
 {
+    int i; // Variavel de incrementação
     int pesos[ASCII_TAM]; // vetor que guarda o peso do caracter na masma posição de sua posição da tabela ASCII
     unsigned char c; // auxiliar que guarda o caracter
 
@@ -132,6 +165,7 @@ static int* MontaVetorPesos(char* arquivo)
 */
 static void InsereArvoreOrdenado(Lista* l, Arvore* arvore)
 {
+    int i; // Variavel de incrementação
     for(i = 0 ; i < Lista_TamanhoLista(l) ; i++) // Varrendo toda a lista
     {
         // Interrompendo o loop ao encontrar uma árvore com campo 'ocorrencias' maior do que o da árvore a ser inserida
@@ -155,6 +189,7 @@ static void InsereArvoreOrdenado(Lista* l, Arvore* arvore)
 // Lendo arquivo e montando a árvore de Huffman:
 Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
 {
+    int i; // Variavel de incrementação
     // Variáveis auxiliares para criação da árvore
     Arvore *t1;
     Arvore *t2;
@@ -196,19 +231,33 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
 // Compactando e imprimindo o arquivo
 void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
 {
+    int i; // Variavel de incrementação
     FILE* output = fopen(saida, "w"); // abrindo arquivo de escrita
     FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
     unsigned char c; // variável auxiliar para leitura do arquivo
-    Lista* caminho = 
+    Lista* caminho = ListaCaminho_CriaLista(arvoreHuffman); // lista com os novos códigos para cada carácter
     Lista* bits = Lista_NovaLista("int"); // lista auxiliar que guarda a sequência de bits a serem impressos
     bitmap caracter = bitmapInit(8); // bitmap auxiliar que guarda o carácter a ser impresso
+
     InicializaBitmap(&caracter, 8); // inicializando todos os bits do bitmap como 0
 
-    // Imprimindo primeiro a árvore codificada
+    // Imprimindo primeiro a árvore compactada
+    CompactaArvore(bits,arvoreHuffman); // compacta a árvore em bits
+    // Imprime os bits da lista, de 8 em 8, como carácteres
+    while(Lista_TamanhoLista(bits) >= 8)
+    {
+        ImprimeCaracter(&caracter,bits,output);
+    }
+
+    // Imprimindo em seguida a conversão do arquivo de entrada
 
 
+    // Fechando os arquivos
     fclose(input); // fechando arquivo de leitura
     fclose(output); // fechando arquivo de escrita
+    // Destruindo as listas utilizadas
+    ListaCaminho_DestroiLista(caminho); // destruindo a lista de inteiros
+    Lista_DestroiLista(bits,NULL); // destruindo a lista de caminhos
 }
 
 /**

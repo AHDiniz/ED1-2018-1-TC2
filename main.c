@@ -46,27 +46,23 @@ int main(int argc, char *argv[])
 // Auxiliar que troca terminação .txt por .comp
 static char* TrocaTXT(char* string)
 {
-    int i; // variável de incrementação
+    int pos; // variável de incrementação
     int len = strlen(string); // tamanho da string fonte
-    char *aux = (char*) malloc(len +1); // string auxíliar
+    char *aux; // string auxíliar
 
-    // Inverte a string
-    for(i = 0 ; i < len ; i++)
+    //  Encontra a posição do ultimo ponto na string
+    for(pos = len -1 ; pos >= 0 ; pos--)
     {
-        aux[i] = string[len -1 -i];
+        if(string[pos] == '.')
+        {
+            break;
+        }
     }
-    aux[len -1] = '\0';
 
-    // Encontra a posição do ultimo ponto na string
-    int pos = (int) (strchr(aux,'.') -aux);
-    pos = len -pos;
-
-    free(aux); // liberando auxíliar
-
-    string[pos] = '\0'; // encurtando string
-    aux = (char*) malloc(pos +5); // realocando aux
+    aux = (char*) malloc(pos +6); // alocando aux
     strcpy(aux,string); // copiando string
-    strcat(aux,"comp"); // acrescentando "comp" a aux
+    aux[pos] = '\0'; // encurtando aux
+    strcat(aux,".comp"); // acrescentando ".comp" a aux
 
     return aux;
 }

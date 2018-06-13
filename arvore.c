@@ -139,7 +139,7 @@ int Arvore_Pertence(Arvore* raiz, unsigned char* c)
 // Verificando o caminho até um determinado nó da árvore
 Lista* Arvore_Caminho(Arvore* raiz, Arvore* alvo)
 {
-    Lista* caminho = Lista_NovaLista("Arvore*");
+    Lista* caminho = ListaCaminho_CriaListaInt();
 
     Arvore_CaminhoAux(raiz, alvo, caminho);
 

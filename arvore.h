@@ -12,6 +12,7 @@ arvore.h: definições para arvore genérica
 
 #include "bitmap.h"
 #include "lista.h"
+#include "listacaminho.h"
 
 /**
  * Tipo Árvore:

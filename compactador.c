@@ -117,8 +117,8 @@ static void ImprimeCaracter(bitmap* bitmap, Lista* lista, FILE* output)
     int i; // Variavel de incrementação
     for(i = 0 ; i < 8 ; i++)
     {
-        bitmapSetBit(bitmap,i,(int) Lista_AchaItem(lista,0));
-        Lista_ListaRemove(lista,0,NULL);
+        bitmapSetBit(bitmap,i,*((int*) Lista_AchaItem(lista,0)));
+        Lista_ListaRemove(lista,0,ListaCaminho_LiberaInt);
     }
 
     fputc(ConverteParaCharacter(bitmap),output);
@@ -236,7 +236,8 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
     unsigned char c; // variável auxiliar para leitura do arquivo
     Lista* caminho = ListaCaminho_CriaLista(arvoreHuffman); // lista com os novos códigos para cada carácter
-    Lista* bits = Lista_NovaLista("int"); // lista auxiliar que guarda a sequência de bits a serem impressos
+    Lista* bits = Lista_NovaLista("int*"); // lista auxiliar que guarda a sequência de bits a serem impressos
+    Lista* l;
     bitmap caracter = bitmapInit(8); // bitmap auxiliar que guarda o carácter a ser impresso
 
     InicializaBitmap(&caracter, 8); // inicializando todos os bits do bitmap como 0
@@ -250,14 +251,46 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     }
 
     // Imprimindo em seguida a conversão do arquivo de entrada
+    c = fgetc(input); // inicializando com o primeiro carácter
+    while(c != EOF) // varrendo o arquivo de entrada
+    {
+        l = ListaCaminho_Caminho(caminho,c); // buscando o caminho para o carácter lido
+        // Inserindo o caminho na lista bits
+        for(i = 0 ; i < Lista_TamanhoLista(l) ; i++)
+        {
+            Lista_ListaAdd(bits,Lista_NovoItem("int*",Lista_AchaItem(l,i)),Lista_TamanhoLista(bits));
+        }
 
+        // Imprimindo os bits caso completem um carácter
+        while(Lista_TamanhoLista(bits) >= 8)
+        {
+            ImprimeCaracter(&caracter,bits,output);
+        }
+
+        c = fgetc(input); // atualizando carácter
+    }
+
+    if(!Lista_ListaVazia(bits)) // se sobrarem bits para serem impressos
+    {
+        // Cria um auxiliar para completar o espaço faltando
+        int* aux = ListaCaminho_CriaInt(0);
+
+        // Completa a lista até 8 bits
+        while(Lista_TamanhoLista(bits) < 8)
+        {
+            Lista_ListaAdd(bits,Lista_NovoItem("int*",aux),Lista_TamanhoLista(bits));
+        }
+        
+        // Imprime o último carácter
+        ImprimeCaracter(&caracter,bits,output);
+    }
 
     // Fechando os arquivos
     fclose(input); // fechando arquivo de leitura
     fclose(output); // fechando arquivo de escrita
     // Destruindo as listas utilizadas
     ListaCaminho_DestroiLista(caminho); // destruindo a lista de inteiros
-    Lista_DestroiLista(bits,NULL); // destruindo a lista de caminhos
+    Lista_DestroiLista(bits,ListaCaminho_LiberaInt); // destruindo a lista de impressão
 }
 
 /**

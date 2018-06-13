@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "lista.h"
+#include "../lista.h"
 
 static void Printa(Lista*);
 static void Freedom(void*);

@@ -23,6 +23,24 @@ listacaminho.h: definições para lista dos caminhos
 typedef struct caminho Caminho;
 
 /**
+ * Função de criação de uma lista de inteiros:
+ * Input: nenhum;
+ * Output: ponteiro para lista de inteiros criada;
+ * Condições: nenhuma;
+ * Efeitos Colaterais: nenhum;
+*/
+Lista* ListaCaminho_CriaListaInt(void);
+
+/**
+ * Função de inicialização de um inteiro para ser adicionado a lista de inteiros:
+ * Input: int;
+ * Output: ponteiro para o inteiro;
+ * Condições: nenhuma;
+ * Efeitos Colaterais: nenhum;
+*/
+int* ListaCaminho_CriaInt(int valor);
+
+/**
  * Função de criação da lista de caminhos:
  * Input: ponteiro para a árvore de Huffman;
  * Output: lista contendo todos os carácteres e seus respectivos caminhos;
@@ -48,5 +66,14 @@ Lista* ListaCaminho_Caminho(Lista* listaCam, unsigned char caracter);
  * Efeitos Colaterais: a lista será apagada da memória;
 */
 Lista* ListaCaminho_DestroiLista(Lista* lista);
+
+/**
+ * Função para liberar um inteiro da lista de inteiros:
+ * Input: ponteiro genérico para o conteudo;
+ * Output: nenhum;
+ * Condições: conteudo existente e alocado;
+ * Efeitos Colaterais: o conteudo será apagado da memória;
+*/
+void ListaCaminho_LiberaInt(void* conteudo);
 
 #endif

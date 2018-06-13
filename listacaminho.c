@@ -17,18 +17,6 @@ struct caminho
 };
 
 /**
- * Função auxiliar para liberar a lista de inteiros:
- * Input: ponteiro genérico para o conteudo;
- * Output: nenhum;
- * Condições: conteudo existente e alocado;
- * Efeitos Colaterais: o conteudo será apagado da memória;
-*/
-static void LiberaInt(void* conteudo)
-{
-    free(conteudo);
-}
-
-/**
  * Função auxiliar que destrói um struct caminho da memória:
  * Input: ponteiro genérico para o struct;
  * Output: nenhum;
@@ -41,7 +29,7 @@ static void DestroiCaminho(void* caminho)
 
     if(cam != NULL) // medida de segurança
     {
-        Lista_DestroiLista(cam->caminho,LiberaInt); // destroi a lista do caminho
+        Lista_DestroiLista(cam->caminho,ListaCaminho_LiberaInt); // destroi a lista do caminho
         free(cam); // libera o struct
     }
 }
@@ -105,4 +93,25 @@ Lista* ListaCaminho_DestroiLista(Lista* lista)
         Lista_DestroiLista(lista,DestroiCaminho); // destroi a lista de structs
     }
     return NULL;
+}
+
+// Criando uma lista de inteiros:
+Lista* ListaCaminho_CriaListaInt(void)
+{
+    return Lista_NovaLista("int*");
+}
+
+// Inicializando um inteiro para ser adicionado a lista de inteiros:
+int* ListaCaminho_CriaInt(int valor)
+{
+    int* inteiro = (int*) malloc(sizeof(int));
+    *inteiro = valor;
+
+    return inteiro;
+}
+
+// Liberando um inteiro da lista de inteiros:
+void ListaCaminho_LiberaInt(void* conteudo)
+{
+    free(conteudo);
 }

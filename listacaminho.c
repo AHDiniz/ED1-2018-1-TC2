@@ -17,6 +17,18 @@ struct caminho
 };
 
 /**
+ * Função auxiliar para liberar a lista de inteiros:
+ * Input: ponteiro genérico para o conteudo;
+ * Output: nenhum;
+ * Condições: conteudo existente e alocado;
+ * Efeitos Colaterais: o conteudo será apagado da memória;
+*/
+static void LiberaInt(void* conteudo)
+{
+    free(conteudo);
+}
+
+/**
  * Função auxiliar que destrói um struct caminho da memória:
  * Input: ponteiro genérico para o struct;
  * Output: nenhum;
@@ -29,7 +41,7 @@ static void DestroiCaminho(void* caminho)
 
     if(cam != NULL) // medida de segurança
     {
-        Lista_DestroiLista(cam->caminho,NULL); // destroi a lista do caminho
+        Lista_DestroiLista(cam->caminho,LiberaInt); // destroi a lista do caminho
         free(cam); // libera o struct
     }
 }

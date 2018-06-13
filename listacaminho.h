@@ -15,7 +15,7 @@ listacaminho.h: definições para lista dos caminhos
 
 /**
  * Tipo Caminho:
- * Será usada para quardar o caminho para cada carácter numa árvore;
+ * Será usada para guardar o caminho para cada carácter numa árvore;
  * Possui os seguintes campos:
  * unsigned char caracter;
  * Lista* caminho;

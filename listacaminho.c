@@ -16,13 +16,7 @@ struct caminho
     Lista* caminho;
 };
 
-/**
- * Função auxiliar que destrói um struct caminho da memória:
- * Input: ponteiro genérico para o struct;
- * Output: nenhum;
- * Condições: struct existente e alocado;
- * Efeitos Colaterais: o struct será apagado da memória;
-*/
+// Função auxiliar que destrói um struct caminho da memória:
 static void DestroiCaminho(void* caminho)
 {
     Caminho* cam = (Caminho*) caminho; // convertendo para Caminho
@@ -34,13 +28,7 @@ static void DestroiCaminho(void* caminho)
     }
 }
 
-/**
- * Função auxiliar de criação dos caminhos da lista:
- * Input: ponteiros para a lista, para a árvore de Huffman e para a árvore raiz;
- * Output: nenhum;
- * Condições: árvores e lista existem;
- * Efeitos Colaterais: lista contem os structs caminho das folhas da árvore de Huffman;
-*/
+// Função auxiliar de criação dos caminhos da lista:
 static void CriaCaminhos(Lista* lista, Arvore* huffman, Arvore* raiz)
 {
     if(Arvore_EhFolha(raiz)) // se for uma folha
@@ -76,7 +64,7 @@ Lista* ListaCaminho_Caminho(Lista* listaCam, unsigned char caracter)
     Caminho* p; // variável auxiliar de busca
     for(i = 0 ; i < Lista_TamanhoLista(listaCam) ; i++) // varre toda a lista
     {
-        p = Lista_AchaItem(listaCam,i); // auxiliar recebe o struct caminho de um carácter
+        p = (Caminho*)Lista_AchaItem(listaCam,i); // auxiliar recebe o struct caminho de um carácter
         if(p->caracter == caracter) // se for o carácter buscado interrompe a busca
         {
             break;

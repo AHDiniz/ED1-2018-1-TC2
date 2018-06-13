@@ -20,44 +20,25 @@ struct arvore
 };
 
 // Função auxiliar para achar caminho:
-static int Arvore_CaminhoAux(Arvore* raiz, Arvore* alvo, Lista* caminho)
+static void Arvore_CaminhoAux(Arvore* raiz, Arvore* alvo, Lista* caminho)
 {
+    if (raiz == NULL) // Verificação de exceção
+        return;
+
     if (raiz->caracter == alvo->caracter)
+        return;
+    else if (Arvore_Pertence(raiz->esq, (unsigned char*) &(alvo->caracter)))
     {
-        // Se a raiz da árvore for o alvo, ela é adicionada na lista:
-        Item* item = Lista_NovoItem("Arvore*", raiz);
-        Lista_ListaAdd(caminho, item, (Lista_TamanhoLista(caminho) - 1 < 0)? 0 : Lista_TamanhoLista(caminho) - 1);
-        return 1;
+        Item* itemCaminho = Lista_NovoItem("int*", ListaCaminho_CriaInt(0));
+        Lista_ListaAdd(caminho, itemCaminho, Lista_TamanhoLista(caminho) - 1);
+        Arvore_CaminhoAux(raiz->esq, alvo, caminho);
     }
-
-    int ret = 0, flag = 0; // Variáveis auxiliares
-
-    if (raiz->esq != NULL)
+    else if (Arvore_Pertence(raiz->dir, (unsigned char*) &(alvo->caracter)))
     {
-        // Adicionando a subárvore da esquerda no caminho:
-        Item* esq = Lista_NovoItem("Arvore*", raiz->esq);
-        Lista_ListaAdd(caminho, esq, Lista_TamanhoLista(caminho) - 1);
-        flag = 1; // Isso serve para garantir que não serão adicionandos nós que não pertencem ao caminho
-        ret = Arvore_CaminhoAux(raiz->esq, alvo, caminho); // Procurando o alvo na subárvore da esquerda
+        Item* itemCaminho = Lista_NovoItem("int*", ListaCaminho_CriaInt(1));
+        Lista_ListaAdd(caminho, itemCaminho, Lista_TamanhoLista(caminho) - 1);
+        Arvore_CaminhoAux(raiz->dir, alvo, caminho);
     }
-
-    if (!ret) // Se o alvo não está na subárvore da esquerda:
-    {
-        if (raiz->dir != NULL)
-        {
-            if (!flag) // Se a subárvore da esquerda não pertence ao caminho:
-            {
-                Item* dir = Lista_NovoItem("Arvore*", raiz->dir);
-                Lista_ListaAdd(caminho, dir, Lista_TamanhoLista(caminho) - 1);
-            }
-            ret = Arvore_CaminhoAux(raiz->dir, alvo, caminho); // Adicionando a subárvore da direita na lista
-        }
-    }
-
-    if (!ret)
-        Lista_ListaRemove(caminho, Lista_TamanhoLista(caminho) - 1, NULL); // Removendo a subárvore da lista s/ destruí-la
-    
-    return ret;
 }
 
 // Criando uma folha (árvore sem nós filhos):
@@ -128,7 +109,7 @@ int Arvore_Pertence(Arvore* raiz, unsigned char* c)
         return 0;
     if (Arvore_EhFolha(raiz))
     {
-        if(!strcmp(raiz->caracter, c))
+        if(raiz->caracter == *c)
             return 1;
         else
             return 0;
@@ -149,11 +130,7 @@ Lista* Arvore_Caminho(Arvore* raiz, Arvore* alvo)
 // Apagando a árvore:
 Arvore* Arvore_DestroiArvore(Arvore* raiz)
 {
-    if(Arvore_EhFolha(raiz)) // Verificando se a raiz é folha
-    {
-        free(raiz->caracter); // Liberando caracter
-    }
-    else
+    if (!Arvore_EhFolha(raiz))
     {
         if (raiz->esq != NULL)
             Arvore_DestroiArvore(raiz->esq); // Destruindo a subárvore da esquerda
@@ -162,4 +139,109 @@ Arvore* Arvore_DestroiArvore(Arvore* raiz)
     }
     free(raiz); // Liberando árvore
     return NULL;
+}
+
+
+
+
+
+
+
+
+
+
+// Funções e estruturas auxiliares utilizadas na procura do caminho da raiz de uma árvore até um nó dessa árvore:
+
+struct caminho
+{
+    unsigned char caracter;
+    Lista *caminho;
+};
+
+// Função auxiliar que destrói um struct caminho da memória:
+static void DestroiCaminho(void *caminho)
+{
+    Caminho *cam = (Caminho *)caminho; // convertendo para Caminho
+
+    if (cam != NULL) // medida de segurança
+    {
+        Lista_DestroiLista(cam->caminho, ListaCaminho_LiberaInt); // destroi a lista do caminho
+        free(cam);                                                // libera o struct
+    }
+}
+
+// Função auxiliar de criação dos caminhos da lista:
+static void CriaCaminhos(Lista *lista, Arvore *huffman, Arvore *raiz)
+{
+    if (Arvore_EhFolha(raiz)) // se for uma folha
+    {
+        // Cria um struct caminho com o carácter e o caminho até ele
+        Caminho *cam = (Caminho *)malloc(sizeof(Caminho));
+        cam->caracter = Arvore_Caracter(raiz);
+        cam->caminho = Arvore_Caminho(huffman, raiz);
+        // Adiciona o struct criado na lista
+        Lista_ListaAdd(lista, Lista_NovoItem("Caminho", cam), 0);
+    }
+    else // se não for uma folha aplica a função recursivamente a suas árvores
+    {
+        CriaCaminhos(lista, huffman, Arvore_ArvoreDireita(raiz));  // aplicando recursão a direita
+        CriaCaminhos(lista, huffman, Arvore_ArvoreEsquerda(raiz)); // aplicando recursão a esquerda
+    }
+}
+
+// Cria a lista de caminhos da árvore de Huffman
+Lista *ListaCaminho_CriaLista(Arvore *huffman)
+{
+    Lista *novaLista = Lista_NovaLista("Caminho"); // cria a lista
+
+    CriaCaminhos(novaLista, huffman, huffman); // insere cada carácter da árvore na lista com seus respectivos caminhos
+
+    return novaLista;
+}
+
+// Retorna o caminho de um carácter
+Lista *ListaCaminho_Caminho(Lista *listaCam, unsigned char caracter)
+{
+    int i;                                             // variável de incrementação
+    Caminho *p;                                        // variável auxiliar de busca
+    for (i = 0; i < Lista_TamanhoLista(listaCam); i++) // varre toda a lista
+    {
+        p = (Caminho *)Lista_AchaItem(listaCam, i); // auxiliar recebe o struct caminho de um carácter
+        if (p->caracter == caracter)                // se for o carácter buscado interrompe a busca
+        {
+            break;
+        }
+    }
+    return p->caminho; // retorna o caminho
+}
+
+// Destroi a lista de caminhos
+Lista *ListaCaminho_DestroiLista(Lista *lista)
+{
+    if (lista != NULL) // medida de segurança
+    {
+        Lista_DestroiLista(lista, DestroiCaminho); // destroi a lista de structs
+    }
+    return NULL;
+}
+
+// Criando uma lista de inteiros:
+Lista *ListaCaminho_CriaListaInt(void)
+{
+    return Lista_NovaLista("int*");
+}
+
+// Inicializando um inteiro para ser adicionado a lista de inteiros:
+int *ListaCaminho_CriaInt(int valor)
+{
+    int *inteiro = (int *)malloc(sizeof(int));
+    *inteiro = valor;
+
+    return inteiro;
+}
+
+// Liberando um inteiro da lista de inteiros:
+void ListaCaminho_LiberaInt(void *conteudo)
+{
+    free(conteudo);
 }

@@ -56,7 +56,7 @@ Tamanho da lista:
 - Pré-condições: lista alocada e não vazia;
 - Pós-condições: nenhum efeito colateral;
 */
-int Lista_TamanhoLista(Lista* lista);
+unsigned int Lista_TamanhoLista(Lista* lista);
 
 /*
 Adicionar item na lista:

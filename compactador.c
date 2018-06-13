@@ -78,31 +78,94 @@ static unsigned char ConverteParaCharacter(bitmap* map)
 
 /**
  * Função auxiliar que codifica uma árvore para ser impressa e a armazena numa lista de inteiros:
- * Input: lista de inteiros e árvore;
+ * Input: lista de inteiros, árvore e um bitmap;
  * Output: nenhum;
- * Condições: lista tipo int e árvore existente;
+ * Condições: lista tipo int, árvore e bitmap existentem e bitmap tem tamanho máximo válido de pelo menos 8;
  * Efeitos Colaterais: a lista recebe a árvore codificada no final;
 */
-static void CompactaArvore(Lista* lista, Arvore* arvore)
+static void CompactaArvore(Lista* lista, Arvore* arvore, bitmap* map)
 {
     if(Arvore_EhFolha(arvore)) // se a árvore for uma folha
     {
        int i; // Variavel de incrementação
-       bitmap map = bitmapInit(8); // bitmap para auxiliar a conversão do carácter para binário
-       InicializaBitmap(&map,8); // inicializa o bitmap
-       ConverteParaBinario(&map,Arvore_Caracter(arvore)); // converte o carácter para binário
+       ConverteParaBinario(map,Arvore_Caracter(arvore)); // converte o carácter para binário
        Lista_ListaAdd(lista,Lista_NovoItem("int",0),0); // insere 0 (codigo para folha) na lista
        for(i = 0 ; i < 8 ; i++) // insere em seguida o caracter em binário
        {
-           Lista_ListaAdd(lista,Lista_NovoItem("int",bitmapGetBit(map,i)),Lista_TamanhoLista(lista) -1);
+           Lista_ListaAdd(lista,Lista_NovoItem("int",bitmapGetBit(*map,i)),Lista_TamanhoLista(lista) -1);
        }
     }
     else // se a árvore for um nó
     {
         Lista_ListaAdd(lista,Lista_NovoItem("int",1),Lista_TamanhoLista(lista) -1); // insere 1 (codigo para nó) na lista
-        CompactaArvore(lista,Arvore_ArvoreEsquerda(arvore)); // compacta a árvore da esquerda
-        CompactaArvore(lista,Arvore_ArvoreDireita(arvore)); // compacta a árvore da direita
+        CompactaArvore(lista,Arvore_ArvoreEsquerda(arvore),map); // compacta a árvore da esquerda
+        CompactaArvore(lista,Arvore_ArvoreDireita(arvore), map); // compacta a árvore da direita
     }
+}
+
+/**
+ * Função auxiliar que reconstroi a árvore de Huffman compactada:
+ * Input: arquivo de leitura, lista de inteiros e um bitmap;
+ * Output: árvore de Huffman;
+ * Condições: arquivo existe, lista alocada e bitmap com tamanho máximo válido de pelo menos 8;
+ * Efeitos Colaterais: lista modificada;
+*/
+static Arvore* DescompactaArvore(FILE* input, Lista* bits, bitmap* map)
+{
+    if(Lista_TamanhoLista(bits) == 0) // se não houverem bits para ser lidos
+    {
+        PegaCaracter(input,bits,map); // lê um bit do arquivo
+    }
+    if( *((int*) Lista_AchaItem(bits, 0)) == 1) // se o primeiro bit lido for 1
+    {
+        Lista_ListaRemove(bits,0,ListaCaminho_LiberaInt); // remove esse bit da lista
+
+        // Retorna uma nova árvore nó e lê suas arvores esquerda e direita
+        return Arvore_CriaArvore(0, DescompactaArvore(input,bits,map), DescompactaArvore(input,bits,map));
+    }
+    else // caso o bit for 0
+    {
+        Lista_ListaRemove(bits,0,ListaCaminho_LiberaInt); // remove esse bit da lista
+
+        if(Lista_TamanhoLista(bits) < 8) // verifica se todos os bits nescessarios estão na lista
+        {
+            PegaCaracter(input,bits,map); // caso não, lê mais um
+        }
+
+        // Retorna uma nova árvore folha com o carácter lido nos atuais primeiros 8 bits da lista
+        return Arvore_CriaFolha(ConverteParaCharacter(map), 0);
+    }
+
+}
+
+/**
+ * Função auxiliar que lê um carácter do arquivo de entrada e o converte para binário:
+ * Input: arquivo de leitura, lista de inteiros e um bitmap;
+ * Output: inteiro de carater booleano indicando se ainda há caracteres para serem lidos;
+ * Condições: arquivo existe, lista alocada e bitmap com tamanho máximo válido de pelo menos 8;
+ * Efeitos Colaterais: lista incrementada em 8 bits;
+*/
+static int PegaCaracter(FILE* input, Lista* bits, bitmap* map)
+{
+    int i; // variável de incrementação
+    unsigned char c; // variável auxiliar para leitura do arquivo
+    Item* item; // variável auxiliar
+
+    c = fgetc(input); // retira um carácter do arquivo
+    if(c == EOF) // caso seja o fim do arquivo
+    {
+        return 0; // retorna 0
+    }
+
+    ConverteParaBinario(map,c); // convertendo c para binário e armazenando no bitmap
+    // Copiando o bitmap no fim da lista
+    for(i = 0 ; i < 8 ; i++)
+    {
+        item = Lista_NovoItem("int*", ListaCaminho_CriaInt( bitmapGetBit(*map,i)));
+        Lista_ListaAdd(bits, item, Lista_TamanhoLista(bits));
+    }
+
+    return 1;
 }
 
 /**
@@ -178,14 +241,6 @@ static void InsereArvoreOrdenado(Lista* l, Arvore* arvore)
     Lista_ListaAdd(l, Lista_NovoItem("Arvore", arvore), i); // Inserindo árvore em sua devida posição
 }
 
-/**
- * Função auxiliar que monta uma lista com os caminhos para cada:
- * Input: lista e árvore;
- * Output: nenhum;
- * Condições: lista e árvore existem;
- * Efeitos Colaterais: árvore inclusa à lista mantendo-a ordenada;
-*/
-
 // Lendo arquivo e montando a árvore de Huffman:
 Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
 {
@@ -236,7 +291,7 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
     unsigned char c; // variável auxiliar para leitura do arquivo
     Lista* caminho = ListaCaminho_CriaLista(arvoreHuffman); // lista com os novos códigos para cada carácter
-    Lista* bits = Lista_NovaLista("int*"); // lista auxiliar que guarda a sequência de bits a serem impressos
+    Lista* bits = ListaCaminho_CriaListaInt(); // lista auxiliar que guarda a sequência de bits a serem impressos
     Lista* l;
     bitmap caracter = bitmapInit(8); // bitmap auxiliar que guarda o carácter a ser impresso
 
@@ -293,11 +348,17 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     Lista_DestroiLista(bits,ListaCaminho_LiberaInt); // destruindo a lista de impressão
 }
 
-/**
- * Função de descompactação de um arquivo:
- * Input: nome do arquivo (com extensão .comp);
- * Output: arquivo descompactado;
- * Condições: arquivo existe;
- * Efeitos Colaterais: nenhum;
-*/
-void Compactador_Descompacta(char* arquivo);
+// Descompactando e imprimindo um arquivo:
+void Compactador_Descompacta(char* entrada, char* saida)
+{
+    FILE* output = fopen(saida, "w"); // abrindo arquivo de escrita
+    FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
+    Lista *bits = ListaCaminho_CriaListaInt();
+    bitmap map = bitmapInit(8);
+
+    DescompactaArvore(input, bits, &map);
+
+    // Fechando os arquivos
+    fclose(input); // fechando arquivo de leitura
+    fclose(output); // fechando arquivo de escrita
+}

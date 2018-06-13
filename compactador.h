@@ -37,6 +37,6 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida);
  * Condições: arquivo existe;
  * Efeitos Colaterais: nenhum;
 */
-void Compactador_Descompacta(char* arquivo);
+void Compactador_Descompacta(char* arquivo, char* saida);
 
 #endif

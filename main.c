@@ -11,7 +11,7 @@ main.c: ponto de entrada do programa
 #include <string.h>
 #include "compactador.h"
 
-static char* TrocaTXT(char*);
+static char* TrocaTXT(char* string, char* novaTerminacao);
 
 int main(int argc, char *argv[])
 {
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
         Arvore* arvHuff = Compactador_MontaArvoreHuffman(argv[2]); // criando a árvore de Huffman
 
         // Preparando o nome do arquivo de escrita
-        char *novoArquivo = TrocaTXT(argv[2]); // trocando .txt por .comp
+        char *novoArquivo = TrocaTXT(argv[2], ".comp"); // trocando .txt por .comp
 
         Compactador_Compacta(arvHuff, argv[2], novoArquivo); // compactando e impimindo num arquivo com o novo nome
 
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
         }
         else // caso entrada seja diferente imprime mensagem de erro
         {
-            printf("ERRO: Formato incorreto\nPrimeiro parametro deve ser 1(compactar) ou 0(descompactar)\n");
+            printf("ERRO: Formato incorreto\nPrimeiro parametro deve ser -c(compactar) ou -d(descompactar)\n");
         }
     }
 
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 }
 
 // Auxiliar que troca terminação .txt por .comp
-static char* TrocaTXT(char* string)
+static char* TrocaTXT(char* string, char* novaTerminacao)
 {
     int pos; // variável de incrementação
     int len = strlen(string); // tamanho da string fonte
@@ -59,10 +59,10 @@ static char* TrocaTXT(char* string)
         }
     }
 
-    aux = (char*) malloc(pos +6); // alocando aux
+    aux = (char*) malloc(pos + strlen(novaTerminacao) +1); // alocando aux
     strcpy(aux,string); // copiando string
     aux[pos] = '\0'; // encurtando aux
-    strcat(aux,".comp"); // acrescentando ".comp" a aux
+    strcat(aux,novaTerminacao); // acrescentando a nova terminacao a aux
 
     return aux;
 }

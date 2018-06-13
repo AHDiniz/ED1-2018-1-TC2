@@ -16,7 +16,7 @@ static char* TrocaTXT(char*);
 int main(int argc, char *argv[])
 {
     // Verificando entrada
-    if(!strcmp(argv[1],"0")) // compactar
+    if(!strcmp(argv[1],"-c")) // compactar
     {
         Arvore* arvHuff = Compactador_MontaArvoreHuffman(argv[2]); // criando a árvore de Huffman
 
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        if(argv[1] == '1') // descompactar
+        if(strcmp(argv[1], "-d")) // descompactar
         {
 
         }

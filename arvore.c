@@ -15,7 +15,7 @@ struct arvore
 {
     Arvore* esq;
     Arvore* dir;
-    unsigned char* caracter;
+    unsigned char caracter;
     int ocorrencias;
 };
 
@@ -61,12 +61,11 @@ static int Arvore_CaminhoAux(Arvore* raiz, Arvore* alvo, Lista* caminho)
 }
 
 // Criando uma folha (árvore sem nós filhos):
-Arvore* Arvore_CriaFolha(unsigned char* caracter, int ocorrencias)
+Arvore* Arvore_CriaFolha(unsigned char caracter, int ocorrencias)
 {
     Arvore* a = (Arvore*)malloc(sizeof(Arvore)); // Alocando espaço na memória dinamicamente
     // Populando os campos da estrutura:
-    a->caracter = (unsigned char*)malloc(9);
-    strcpy(a->caracter, caracter);
+    a->caracter = caracter;
     a->ocorrencias = ocorrencias;
     a->dir = a->esq = NULL;
     return a; // Retornando o nó
@@ -85,7 +84,7 @@ Arvore* Arvore_CriaArvore(int ocorrencias, Arvore* esq, Arvore* dir)
 }
 
 // Retorna o caracter de uma árvore:
-unsigned char* Arvore_Caracter(Arvore* arvore)
+unsigned char Arvore_Caracter(Arvore* arvore)
 {
     return arvore->caracter;
 }

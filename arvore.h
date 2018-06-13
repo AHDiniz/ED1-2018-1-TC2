@@ -31,7 +31,7 @@ typedef struct arvore Arvore;
  * Condições: nenhuma;
  * Efeitos Colaterais: nenhum;
 */
-Arvore* Arvore_CriaFolha(unsigned char* caracter, int ocorrencias);
+Arvore* Arvore_CriaFolha(unsigned char caracter, int ocorrencias);
 
 /**
  * Função que cria uma árvore:
@@ -49,7 +49,7 @@ Arvore* Arvore_CriaArvore(int ocorrencias, Arvore* esq, Arvore* dir);
  * Condições: árvore existente e alocada;
  * Efeitos Colaterais: nenhum;
 */
-unsigned char* Arvore_Caracter(Arvore* arvore);
+unsigned char Arvore_Caracter(Arvore* arvore);
 
 /**
  * Função que retorna o valor ocorrências de uma árvore:

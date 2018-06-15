@@ -123,6 +123,14 @@ Lista* Arvore_Caminho(Arvore *raiz, Arvore *alvo);
 */
 Arvore* Arvore_DestroiArvore(Arvore* raiz);
 
+/**
+ * Função que imprime uma árvore:
+ * Input: ponteiro para o nó raiz da árvore;
+ * Output: nenhum;
+ * Condições: árvore existente e alocada;
+ * Efeitos Colaterais: nenhum;
+*/
+void Arvore_ImprimeArvore(Arvore* raiz);
 
 
 

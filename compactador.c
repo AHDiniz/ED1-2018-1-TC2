@@ -118,6 +118,36 @@ static int ConverteParaInt(bitmap* map)
 }
 
 /**
+ * Função auxiliar que lê um carácter do arquivo de entrada e o converte para binário:
+ * Input: arquivo de leitura, lista de inteiros e um bitmap;
+ * Output: inteiro de carater booleano indicando se ainda há caracteres para serem lidos;
+ * Condições: arquivo existe, lista alocada e bitmap com tamanho máximo válido de pelo menos 8;
+ * Efeitos Colaterais: lista incrementada em 8 bits e bitmap contem o binário;
+*/
+static int PegaCaracter(FILE* input, Lista* lista, bitmap* map)
+{
+    int i; // variável de incrementação
+    char c; // variável auxiliar para leitura do arquivo
+    Item* item; // variável auxiliar
+
+    c = fgetc(input); // retira um carácter do arquivo
+    if(c == EOF) // caso seja o fim do arquivo
+    {
+        return 0; // retorna 0
+    }
+
+    ConverteParaBinario(map,c); // convertendo c para binário e armazenando no bitmap
+    // Copiando o bitmap no fim da lista
+    for(i = 0 ; i < 8 ; i++)
+    {
+        item = Lista_NovoItem("int*", ListaCaminho_CriaInt( bitmapGetBit(*map,i)));
+        Lista_ListaAdd(lista, item, Lista_TamanhoLista(lista));
+    }
+
+    return 1;
+}
+
+/**
  * Função auxiliar que codifica uma árvore para ser impressa e a armazena numa lista de inteiros:
  * Input: lista de inteiros, árvore e um bitmap;
  * Output: nenhum;
@@ -130,15 +160,15 @@ static void CompactaArvore(Lista* lista, Arvore* arvore, bitmap* map)
     {
        int i; // Variavel de incrementação
        ConverteParaBinario(map,Arvore_Caracter(arvore)); // converte o carácter para binário
-       Lista_ListaAdd(lista,Lista_NovoItem("int",0),Lista_TamanhoLista(lista)); // insere 0 (codigo para folha) na lista
+       Lista_ListaAdd(lista,Lista_NovoItem("int*",ListaCaminho_CriaInt(0)),Lista_TamanhoLista(lista)); // insere 0 (codigo para folha) na lista
        for(i = 0 ; i < 8 ; i++) // insere em seguida o caracter em binário
        {
-           Lista_ListaAdd(lista,Lista_NovoItem("int",bitmapGetBit(*map,i)),Lista_TamanhoLista(lista));
+           Lista_ListaAdd(lista,Lista_NovoItem("int*",ListaCaminho_CriaInt(bitmapGetBit(*map,i))),Lista_TamanhoLista(lista));
        }
     }
     else // se a árvore for um nó
     {
-        Lista_ListaAdd(lista,Lista_NovoItem("int",1),Lista_TamanhoLista(lista)); // insere 1 (codigo para nó) na lista
+        Lista_ListaAdd(lista,Lista_NovoItem("int*",ListaCaminho_CriaInt(1)),Lista_TamanhoLista(lista)); // insere 1 (codigo para nó) na lista
         CompactaArvore(lista,Arvore_ArvoreEsquerda(arvore),map); // compacta a árvore da esquerda
         CompactaArvore(lista,Arvore_ArvoreDireita(arvore), map); // compacta a árvore da direita
     }
@@ -183,36 +213,6 @@ static Arvore* DescompactaArvore(FILE* input, Lista* bits, bitmap* map)
 }
 
 /**
- * Função auxiliar que lê um carácter do arquivo de entrada e o converte para binário:
- * Input: arquivo de leitura, lista de inteiros e um bitmap;
- * Output: inteiro de carater booleano indicando se ainda há caracteres para serem lidos;
- * Condições: arquivo existe, lista alocada e bitmap com tamanho máximo válido de pelo menos 8;
- * Efeitos Colaterais: lista incrementada em 8 bits e bitmap contem o binário;
-*/
-static int PegaCaracter(FILE* input, Lista* lista, bitmap* map)
-{
-    int i; // variável de incrementação
-    unsigned char c; // variável auxiliar para leitura do arquivo
-    Item* item; // variável auxiliar
-
-    c = fgetc(input); // retira um carácter do arquivo
-    if(c == EOF) // caso seja o fim do arquivo
-    {
-        return 0; // retorna 0
-    }
-
-    ConverteParaBinario(map,c); // convertendo c para binário e armazenando no bitmap
-    // Copiando o bitmap no fim da lista
-    for(i = 0 ; i < 8 ; i++)
-    {
-        item = Lista_NovoItem("int*", ListaCaminho_CriaInt( bitmapGetBit(*map,i)));
-        Lista_ListaAdd(lista, item, Lista_TamanhoLista(lista));
-    }
-
-    return 1;
-}
-
-/**
  * Função auxiliar que imprime os 8 primeiros bits de uma lista como carácter codificado no arquivo especificado:
  * Input: bitmap, lista e arquivo;
  * Output: nenhum;
@@ -241,8 +241,8 @@ static void ImprimeCaracter(bitmap* bitmap, Lista* lista, FILE* output)
 static int* MontaVetorPesos(char* arquivo)
 {
     int i; // Variavel de incrementação
-    int pesos[ASCII_TAM]; // vetor que guarda o peso do caracter na masma posição de sua posição da tabela ASCII
-    unsigned char c; // auxiliar que guarda o caracter
+    int *pesos = (int*)malloc(sizeof(int) *ASCII_TAM); // vetor que guarda o peso do caracter na masma posição de sua posição da tabela ASCII
+    char c; // auxiliar que guarda o caracter
 
     // Inicializando ocorrencias
     for(i = 0 ; i < ASCII_TAM ; i++)
@@ -255,7 +255,7 @@ static int* MontaVetorPesos(char* arquivo)
     c = fgetc(input); // selecionando primeiro caracter
     while(c != EOF) // percorrendo todo arquivo
     {
-        pesos[(int) c]++; // contando as ocorrencias de cada caracter
+        pesos[c] += 1; // contando as ocorrencias de cada caracter
         c = fgetc(input); // atualizando caracter
     }
 
@@ -313,10 +313,10 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
         t2 = (Arvore*) Lista_AchaItem(listaArvores, 1); // t2 recebe a segunda árvore da lista
 
         // criando nova árvore cujo peso é a soma dos pesos de t1 e t2 e suas árvores esquerda e direita são t1 e t2, respectivamente
-        tr = Arvore_CriaArvore((int)Arvore_Ocorrencias(t1) + Arvore_Ocorrencias(t2), t1, t2);
+        tr = Arvore_CriaArvore(Arvore_Ocorrencias(t1) + Arvore_Ocorrencias(t2), t1, t2);
 
         Lista_ListaRemove(listaArvores, 0, NULL); // removendo t1 da lista
-        Lista_ListaRemove(listaArvores, 1, NULL); // removendo t2 da lista
+        Lista_ListaRemove(listaArvores, 0, NULL); // removendo t2 da lista
 
         InsereArvoreOrdenado(listaArvores, tr); // inserindo tr na lista ordenadamente
     } // loop encerra quando só houver uma árvore na lista. Essa é a árvore de Huffman
@@ -333,10 +333,10 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     int i; // Variavel de incrementação
     FILE* output = fopen(saida, "w+"); // abrindo arquivo de escrita
     FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
-    unsigned char c; // variável auxiliar para leitura do arquivo
+    char c; // variável auxiliar para leitura do arquivo
     Lista* caminho = ListaCaminho_CriaLista(arvoreHuffman); // lista com os novos códigos para cada carácter
     Lista* bits = ListaCaminho_CriaListaInt(); // lista auxiliar que guarda a sequência de bits a serem impressos
-    Lista* l;
+    Lista* l; // lista auxiliar que guarda o caminho até certo carácter
     bitmap caracter = bitmapInit(8); // bitmap auxiliar que guarda o carácter a ser impresso
 
     InicializaBitmap(&caracter, 8); // inicializando todos os bits do bitmap como 0
@@ -348,8 +348,8 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     }
 
     // Imprimindo a árvore compactada
-    CompactaArvore(bits,arvoreHuffman, &caracter); // compacta a árvore em bits
-
+    // Compacta a árvore em bits
+    CompactaArvore(bits,arvoreHuffman, &caracter);
     // Imprime os bits da lista, de 8 em 8, como carácteres
     while(Lista_TamanhoLista(bits) >= 8)
     {
@@ -364,7 +364,7 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
         // Inserindo o caminho na lista bits
         for(i = 0 ; i < Lista_TamanhoLista(l) ; i++)
         {
-            Lista_ListaAdd(bits,Lista_NovoItem("int*",Lista_AchaItem(l,i)),Lista_TamanhoLista(bits));
+            Lista_ListaAdd(bits,Lista_NovoItem("int*",ListaCaminho_CriaInt( *((int*) Lista_AchaItem(l,i)) ) ),Lista_TamanhoLista(bits));
         }
 
         // Imprimindo os bits caso completem um carácter
@@ -418,7 +418,9 @@ void Compactador_Descompacta(char* entrada, char* saida)
     Arvore *atual; // árvore auxiliar de busca
     int naoUtilizados; // armazena quantos bits não devem ser considerados no ultimo carácter do arquivo
     int fda = 0; // variável auxiliar que indica o fim do arquivo
-    
+
+    InicializaBitmap(&map,8);
+
     PegaCaracter(input,bits,&map); // pegando primeiro carácter
     naoUtilizados = ConverteParaInt(&map); // convertendo seus 3 primeiros bits para inteiro
     // Removendo esses 3 bits da lista

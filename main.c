@@ -18,7 +18,8 @@ int main(int argc, char *argv[])
     // Verificando entrada
     if(!strcmp(argv[1],"-c")) // compactar
     {
-        Arvore* arvHuff = Compactador_MontaArvoreHuffman(argv[2]); // criando a árvore de Huffman
+        // Criando a árvore de Huffman
+        Arvore* arvHuff = Compactador_MontaArvoreHuffman(argv[2]);
 
         // Preparando o nome do arquivo de escrita
         char *novoArquivo = TrocaTXT(argv[2], ".comp"); // trocando .txt por .comp
@@ -30,13 +31,15 @@ int main(int argc, char *argv[])
     }
     else
     {
-        if(strcmp(argv[1], "-d")) // descompactar
+        if(!strcmp(argv[1], "-d")) // descompactar
         {
-
+            char *novoArquivo = TrocaTXT(argv[2], ".txt"); // trocando .comp por .txt
+            Compactador_Descompacta(argv[2], novoArquivo); // descompactando e imprimindo o arquivo com o novo nome
+            free(novoArquivo); // liberando nome
         }
         else // caso entrada seja diferente imprime mensagem de erro
         {
-            printf("ERRO: Formato incorreto\nPrimeiro parametro deve ser -c(compactar) ou -d(descompactar)\n");
+            printf("ERRO: Formato incorreto\nPrimeiro parametro deve ser -c(compactar) ou -d(descompactar), seguido do nome do arquivo\n");
         }
     }
 

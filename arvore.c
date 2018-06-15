@@ -57,7 +57,7 @@ Arvore* Arvore_CriaArvore(int ocorrencias, Arvore* esq, Arvore* dir)
 {
     Arvore* a = (Arvore*)malloc(sizeof(Arvore)); // Alocando espaço na memória dinamicamente
     // Populando os campos da estrutura:
-    a->caracter = NULL;
+    a->caracter = '\0';
     a->ocorrencias = ocorrencias;
     a->esq = esq;
     a->dir = dir;
@@ -141,6 +141,22 @@ Arvore* Arvore_DestroiArvore(Arvore* raiz)
     return NULL;
 }
 
+// Imprimindo uma árvore:
+void Arvore_ImprimeArvore(Arvore* raiz)
+{
+    printf("<");
+    if(Arvore_EhFolha(raiz))
+    {
+        printf("%c,%d", raiz->caracter, raiz->ocorrencias);
+    }
+    else
+    {
+        printf(" %d ", raiz->ocorrencias);
+        Arvore_ImprimeArvore(raiz->esq);
+        Arvore_ImprimeArvore(raiz->dir);
+    }
+    printf("> ");
+}
 
 
 

@@ -13,7 +13,6 @@ compactador.c: implementações para compactador
 #include "lista.h"
 #include "bitmap.h"
 #include "compactador.h"
-#include "listacaminho.h"
 
 #define ASCII_TAM 256
 
@@ -190,7 +189,7 @@ static Arvore* DescompactaArvore(FILE* input, Lista* bits, bitmap* map)
  * Condições: arquivo existe, lista alocada e bitmap com tamanho máximo válido de pelo menos 8;
  * Efeitos Colaterais: lista incrementada em 8 bits e bitmap contem o binário;
 */
-static int PegaCaracter(FILE* input, Lista* bits, bitmap* map)
+static int PegaCaracter(FILE* input, Lista* lista, bitmap* map)
 {
     int i; // variável de incrementação
     unsigned char c; // variável auxiliar para leitura do arquivo
@@ -207,7 +206,7 @@ static int PegaCaracter(FILE* input, Lista* bits, bitmap* map)
     for(i = 0 ; i < 8 ; i++)
     {
         item = Lista_NovoItem("int*", ListaCaminho_CriaInt( bitmapGetBit(*map,i)));
-        Lista_ListaAdd(bits, item, Lista_TamanhoLista(bits));
+        Lista_ListaAdd(lista, item, Lista_TamanhoLista(lista));
     }
 
     return 1;
@@ -349,7 +348,7 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     }
 
     // Imprimindo a árvore compactada
-    CompactaArvore(bits,arvoreHuffman); // compacta a árvore em bits
+    CompactaArvore(bits,arvoreHuffman, &caracter); // compacta a árvore em bits
 
     // Imprime os bits da lista, de 8 em 8, como carácteres
     while(Lista_TamanhoLista(bits) >= 8)
@@ -398,7 +397,7 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
         ConverteIntParaBinario(&caracter,i); // substitui os 3 bits reservados no inicio pelo valor de i em binário
 
         rewind(output); // retorna ao começo novamente
-        fputc(ConverteParaCharacter(bitmap),output); // substitui o primeiro carácter
+        fputc(ConverteParaCharacter(&caracter),output); // substitui o primeiro carácter
     }
     fclose(output); // fechando arquivo de escrita
 
@@ -410,15 +409,18 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
 // Descompactando e imprimindo um arquivo:
 void Compactador_Descompacta(char* entrada, char* saida)
 {
+    int i;
     FILE* output = fopen(saida, "w"); // abrindo arquivo de escrita
     FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
-    Lista *bits = ListaCaminho_CriaListaInt();
-    bitmap map = bitmapInit(8);
-    Arvore *huffman;
-    int v; // armazena quantos bits não devem ser considerados no ultimo carácter do arquivo
+    Lista *bits = ListaCaminho_CriaListaInt(); // lista auxiliar que armazenar a sequencia binária lida do arquivo de entrada
+    bitmap map = bitmapInit(8); // auxiliar de conversão
+    Arvore *huffman; // árvore de compactação/descompactação armazenada no cabeçalho do arquivo compactado
+    Arvore *atual; // árvore auxiliar de busca
+    int naoUtilizados; // armazena quantos bits não devem ser considerados no ultimo carácter do arquivo
+    int fda = 0; // variável auxiliar que indica o fim do arquivo
     
-    PegaCaracter(input,bits,map); // pegando primeiro carácter
-    v = ConverteParaInt(&map); // convertendo seus 3 primeiros bits para inteiro
+    PegaCaracter(input,bits,&map); // pegando primeiro carácter
+    naoUtilizados = ConverteParaInt(&map); // convertendo seus 3 primeiros bits para inteiro
     // Removendo esses 3 bits da lista
     for(i = 0 ; i < 3 ; i++)
     {
@@ -428,7 +430,55 @@ void Compactador_Descompacta(char* entrada, char* saida)
     // Descompactando a árvore de Huffman
     huffman = DescompactaArvore(input, bits, &map);
 
+    // Preparando para iniciar o loop
+    // Incrementando a lista de inteiros, caso esteja vazia
+    if(Lista_ListaVazia(bits))
+    {
+        PegaCaracter(input,bits,&map);
+    }
+
+    atual = huffman; // inicializando auxiliar
+    while(!Lista_ListaVazia(bits)) // loop para quando a lista de inteiros estiver vazia
+    {
+        // Incrementando a lista caso seu tamanho seja menor que 8
+        if(Lista_TamanhoLista(bits) <= 8)
+        {
+            if( !(PegaCaracter(input,bits,&map) || fda) ) // se PegaCaracter retornar 0, restou apenas o ultimo carácter do arquivo
+            {
+                fda = 1; // incrementa fda para que essa condicional não se repita
+                // Remove da lista os bits não utilizados, cuja quantidade foi informada no cabeçalho
+                for(i = 0 ; i < naoUtilizados ; i++)
+                {
+                    Lista_ListaRemove(bits, Lista_TamanhoLista(bits) -1, ListaCaminho_LiberaInt);
+                }
+            }
+        }
+        // Verificando se a árvore atual é uma folha
+        if(Arvore_EhFolha(atual))
+        {
+            fputc(Arvore_Caracter(atual), output); // caso sim, imprime seu carácter
+            atual = huffman; // reiniciando atual
+        }
+        else // caso não seja uma folha, será avaliado como caminho para a folha
+        {
+            if( *((int*) Lista_AchaItem(bits,0)) ) // se o bit for 1
+            {
+                atual = Arvore_ArvoreDireita(atual); // segue para a árvore da direita
+                Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove o bit já lido
+            }
+            else // se o bit for 0
+            {
+                atual = Arvore_ArvoreEsquerda(atual); // segue para a árvore da esquerda
+                Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove o bit já lido
+            }
+        }
+
+    }
+
     // Fechando os arquivos
     fclose(input); // fechando arquivo de leitura
     fclose(output); // fechando arquivo de escrita
+    // Destruindo as estruturas utilizadas
+    Lista_DestroiLista(bits,ListaCaminho_LiberaInt); // destruindo a lista de leitura
+    Arvore_DestroiArvore(huffman); // destruindo a árvore de Huffman
 }

@@ -58,7 +58,7 @@ bitmap bitmapInit(unsigned int max_size) {
 	// definir tamanho maximo em bytes, com arredondamento para cima
 	unsigned int max_sizeInBytes=(max_size+7)/8;
 	// alocar espaco de memoria para o tamanho maximo em bytes
-	bm.contents=calloc(max_sizeInBytes, sizeof(char));
+	bm.contents = (unsigned char*)calloc(max_sizeInBytes, sizeof(char));
 	// verificar alocacao de memoria
 	assert(bm.contents!=NULL, "Erro de alocacao de memoria.");
 	// definir valores iniciais para tamanho maximo e tamanho atual

@@ -29,7 +29,7 @@ Nova Lista:
 - Pré-condições: o tipo deve ser algum existente no programa e preferencialmente escrito da mesma forma em que o tipo foi definido;
 - Pós-condições: a lista está vazia;
 */
-Lista* NovaLista(const char* tipo);
+Lista* Lista_NovaLista(const char* tipo);
 
 /*
 Destruição de Lista:
@@ -38,7 +38,7 @@ Destruição de Lista:
 - Pré-condições: a lista deve estar alocada na memória;
 - Pós-condições: os itens da lista que ainda estão nela serão destruídos também;
 */
-void DestroiLista(Lista* lista, FreeContItem Func);
+void Lista_DestroiLista(Lista* lista, FreeContItem Func);
 
 /*
 Verificação de Lista Vazia:
@@ -47,7 +47,7 @@ Verificação de Lista Vazia:
 - Pré-condições: a lista precisa estar alocada na memória;
 - Pós-condições: nenhum efeito colateral;
 */
-int ListaVazia(Lista* lista);
+int Lista_ListaVazia(Lista* lista);
 
 /*
 Tamanho da lista:
@@ -56,7 +56,7 @@ Tamanho da lista:
 - Pré-condições: lista alocada e não vazia;
 - Pós-condições: nenhum efeito colateral;
 */
-int TamanhoLista(Lista* lista);
+unsigned int Lista_TamanhoLista(Lista* lista);
 
 /*
 Adicionar item na lista:
@@ -65,7 +65,7 @@ Adicionar item na lista:
 - Pré-condições: a lista e o item não podem estar vazios;
 - Pós-condições: o item é adicionado na lista e ela fica maior;
 */
-void ListaAdd(Lista* lista, Item* item);
+void Lista_ListaAdd(Lista* lista, Item* item, unsigned int pos);
 
 /*
 Remover item na lista:
@@ -74,7 +74,7 @@ Remover item na lista:
 - Pré-condições: a lista não pode estar vazia e a posição deve ficar entre zero e o tamanho atual da lista;
 - Pós-condições: o item é liberado da memória e a lista fica menor;
 */
-void ListaRemove(Lista* lista, const unsigned int pos, FreeContItem Func);
+void Lista_ListaRemove(Lista* lista, const unsigned int pos, FreeContItem Func);
 
 /*
 Achar item na lista:
@@ -83,7 +83,7 @@ Achar item na lista:
 - Pré-condições: lista alocada e não vazia e posição válida;
 - Pós-condições: nenhum efeito colateral;
 */
-void* AchaItem(Lista* lista, const unsigned int pos);
+void* Lista_AchaItem(Lista* lista, const unsigned int pos);
 
 /*
 Criação de um novo item:
@@ -92,7 +92,7 @@ Criação de um novo item:
 - Pré-condições: tanto a tag quanto o conteúdo não podem apontar para NULL;
 - Pós-condições: nenhum efeito colateral;
 */
-Item* NovoItem(const char* tipo, void* conteudo);
+Item* Lista_NovoItem(const char* tipo, void* conteudo);
 
 /*
 Verificação de item com conteúdo opaco:
@@ -101,7 +101,7 @@ Verificação de item com conteúdo opaco:
 - Pré-condições: o item já deve ter sido alocado;
 - Pós-condições: nenhum efeito colateral;
 */
-int ItemVazio(Item* item);
+int Lista_ItemVazio(Item* item);
 
 /*
 Liberação de item da memória:
@@ -110,7 +110,7 @@ Liberação de item da memória:
 - Pré-condições: o item deve estar alocado na memória e a função deve existir e seguir o padrão determinado para a função que libera o conteúdo de um item;
 - Pós-condições: o item está vazio;
 */
-int LiberaItem(Item* item, FreeContItem Func);
+int Lista_LiberaItem(Item* item, FreeContItem Func);
 
 /*
 Conteúdo de um item:
@@ -119,6 +119,6 @@ Conteúdo de um item:
 - Pré-condições: o item deve estar alocado e com conteúdo;
 - Pós-condições: nenhum efeito colateral;
 */
-void* ConteudoItem(Item* item);
+void* Lista_ConteudoItem(Item* item);
 
 #endif

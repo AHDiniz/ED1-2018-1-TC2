@@ -26,7 +26,6 @@ struct item
     void *conteudo; // Ponteiro para o conteúdo do item
     char *tipo;     // Tag com o tipo do conteúdo do item
     Item *proximo;  // Ponteiro para o próximo item da lista
-    int posicao;    // Posição do item na lista
 };
 
 // Funções estáticas:
@@ -41,7 +40,7 @@ static int CmpTipoListaItem(Lista* lista, Item* item)
 }
 
 // Alocando uma nova lista dinamicamente:
-Lista* NovaLista(const char* tipo)
+Lista* Lista_NovaLista(const char* tipo)
 {
     Lista* lista = (Lista*)malloc(sizeof(Lista)); // Alocando dinamicamente o espaço de memória necessário para a nova lista
     
@@ -56,86 +55,112 @@ Lista* NovaLista(const char* tipo)
 }
 
 // Destruindo a lista na memória:
-void DestroiLista(Lista* lista, FreeContItem Func)
+void Lista_DestroiLista(Lista* lista, FreeContItem Func)
 {
     int i, tamanho;
     // Verificando se a lista não está vazia para destruir cada item ainda existente:
-    if (!ListaVazia(lista))
+    if (!Lista_ListaVazia(lista))
     {
         for (i = 0, tamanho = lista->comprimento; i < tamanho; i++) // Varrendo a lista para destruir os itens
-            ListaRemove(lista, 0, Func); // Removendo cada item da lista até ela ficar vazia
+            Lista_ListaRemove(lista, 0, Func); // Removendo cada item da lista até ela ficar vazia
     }
     free(lista->tipo); // Liberando a tag de tipo da lista
     free(lista); // Liberando a lista em si
 }
 
 // Verificação de lista vazia:
-int ListaVazia(Lista* lista)
+int Lista_ListaVazia(Lista* lista)
 {
     return (lista->comprimento == 0); // Se o comprimento da lista é igual a zero, então não há nenhum item nela
 }
 
 // Tamanho da lista:
-int TamanhoLista(Lista* lista)
+unsigned int Lista_TamanhoLista(Lista* lista)
 {
     return (lista->comprimento);
 }
 
 // Adicionando um item na lista:
-void ListaAdd(Lista* lista, Item* item)
+void Lista_ListaAdd(Lista* lista, Item* item, unsigned int pos)
 {
     if (!CmpTipoListaItem(lista, item)) // Comparando os tipos da lista e do item
     {
         printf("Tentando inserir um item de um tipo diferente da lista.\n");
         return; // Se forem diferentes, o item não será adicionado na lista
     }
-    if (ListaVazia(lista)) // Se a lista for vazia
+    if (Lista_ListaVazia(lista)) // Se a lista for vazia
+    {
         lista->primeiro = item; // O primeiro item da lista vai ser o item de entrada da função
-    else // Se a lista possuir algum elemento
-        lista->ultimo->proximo = item; // O próximo item do atual último da lista é o item de entrada
-    lista->ultimo = item; // O último item da lista será o item de entrada
-    item->posicao = lista->comprimento; // Definindo a posicao do item de entrada na lista
+        lista->ultimo = item; // O último item da lista tambem será o item de entrada
+    }
+    else
+    {
+        if(pos >= lista->comprimento) // Se a a posição for maior ou igual ao tamanho da lista
+        {
+            lista->ultimo->proximo = item; // O próximo item do atual último da lista é o item de entrada
+            lista->ultimo = item; // O último item da lista será o item de entrada
+        }
+        else // Se a posição for no meio da lista
+        {
+            Item* p = lista->primeiro; // Variável auxiliar que ajudará a percorrer a lista:
+
+            if(pos == 0) // se for na primeira posição
+            {
+                item->proximo = lista->primeiro; // próximo do item será o primeiro da lista
+                lista->primeiro = item; // primeiro da lista será o item
+            }
+            else // se estiver entre o primeiro e o último
+            {
+                int i; // variável de incrementação
+                for (i = 0; i < pos-1; i++) // Percorrendo cada item da lista
+                {
+                    p = p->proximo; // atualizando auxiliar até que seja o item da posição pos-1
+                }
+            
+                item->proximo = p->proximo; // próximo do item será o o item que atualmente esta na posição pos
+                p->proximo = item; // próximo de pos-1 será o item
+            }
+        }
+    }
     lista->comprimento++; // Atualizando o tamanho da lista
 }
 
 // Removendo um item da lista:
-void ListaRemove(Lista* lista, const unsigned int pos, FreeContItem Func)
+void Lista_ListaRemove(Lista* lista, const unsigned int pos, FreeContItem Func)
 {
-    int i;
+    if(pos >= lista->comprimento)
+    {
+        printf("ERRO: Tentando remover posicao inexistente da lista\n");
+        return;
+    }
     if (pos == 0) // Se o item a ser retirado é o primeiro
     {
         Item* alvo = lista->primeiro; // Auxiliar para não perder a referência do item a ser removido
         lista->primeiro = lista->primeiro->proximo; // Atualizando o valor do primeiro item da lista
-        Item* item = lista->primeiro;
-        // Atualizando o valor das posições dos itens da lista:
-        for (i = 0; i < lista->comprimento - 1; i++)
-        {
-            item->posicao--;
-            item = item->proximo;
-        }
-        LiberaItem(alvo, Func); // Liberando o item alvo da memória
+        Item* item;
+        Lista_LiberaItem(alvo, Func); // Liberando o item alvo da memória
     }
     else
     {
         if (pos == lista->comprimento - 1) // Se o item a ser retirado é o último
         {
-            Item* anterior = lista->primeiro; // Auxiliar que apontará para o novo último item
+            Item* anterior; // Auxiliar que apontará para o novo último item
             Item* alvo = lista->ultimo; // Auxiliar para não perder a referência do item a ser removido
-            for (i = 0; i < lista->comprimento - 1; i++) // Percorrendo a lista para achar o penúltimo item
-                anterior = anterior->proximo;
+            for (anterior = lista->primeiro; anterior->proximo != alvo; anterior = anterior->proximo) // Percorrendo a lista para achar o penúltimo item
             // Atualizando o valor do último item da lista:
             lista->ultimo = anterior;
             anterior->proximo = NULL;
             // Liberando o item alvo da memória:
-            LiberaItem(alvo, Func);
+            Lista_LiberaItem(alvo, Func);
         }
         else
         {
+            int i; //variável de incrementação
             // Variáveis auxiliares que ajudarão a percorrer a lista:
             Item* anterior = lista->primeiro;
             Item* atual = lista->primeiro->proximo;
             for (i = 1; i < lista->comprimento -1; i++) // Percorrendo cada item da lista
-                if (atual->posicao == pos) // Se o item atual estiver na posição desejada
+                if (i == pos) // Se o item atual estiver na posição desejada
                     break; // O loop será quebrado
                 else
                 {
@@ -144,26 +169,19 @@ void ListaRemove(Lista* lista, const unsigned int pos, FreeContItem Func)
                     atual = atual->proximo;
                 }
             anterior->proximo = atual->proximo; // Atualizando os valores dos ponteiros dos itens que continuam na lista
-            // Atualizando os valores das posições dos itens da lista:
-            anterior = anterior->proximo; // Primeiro item que precisa ter sua posição atualizada
-            for (i += 1; i < lista->comprimento - 1; i++)
-            {
-                anterior->posicao--;
-                anterior = anterior->proximo;
-            }
-            LiberaItem(atual, Func); // Liberando o item procurando da memória (vai acabar sendo retirado da lista)
+            Lista_LiberaItem(atual, Func); // Liberando o item procurando da memória (vai acabar sendo retirado da lista)
         }
     }
     lista->comprimento--; // Atualizando o valor do comprimento da lista
 }
 
 // Achando um item na lista:
-void* AchaItem(Lista* lista, const unsigned int pos)
+void* Lista_AchaItem(Lista* lista, const unsigned int pos)
 {
     Item* ret = lista->primeiro; // Ponteiro que apontará para o item procurado
     // Procurando o item desejado:
     for (int i = 0; i < lista->comprimento; i++)
-        if (ret->posicao == pos)
+        if (i == pos)
             break;
         else
             ret = ret->proximo;
@@ -171,7 +189,7 @@ void* AchaItem(Lista* lista, const unsigned int pos)
 }
 
 // Alocando um novo item dinamicamente:
-Item* NovoItem(const char* tipo, void* conteudo)
+Item* Lista_NovoItem(const char* tipo, void* conteudo)
 {
     Item *item = (Item *)malloc(sizeof(Item)); // Alocando o espaço necessário para um novo item dinamicamente
 
@@ -182,21 +200,19 @@ Item* NovoItem(const char* tipo, void* conteudo)
 
     item->proximo = NULL; // o proximo item só será deifnido quando o item estiver numa lista
 
-    item->posicao = 0; // Inicializando a posição do item com um placeholder
-
     return item;
 }
 
 // Verificação de item com conteúdo opaco:
-int ItemVazio(Item* item)
+int Lista_ItemVazio(Item* item)
 {
     return (item->conteudo == NULL); // Verificando se o conteudo apontado pelo respectivo ponteiro do item é opaco
 }
 
 // Liberação de item da memória:
-int LiberaItem(Item* item, FreeContItem Func)
+int Lista_LiberaItem(Item* item, FreeContItem Func)
 {
-    if (ItemVazio(item)) // Checando se o item possui conteúdo
+    if (Lista_ItemVazio(item)) // Checando se o item possui conteúdo
     {
         printf("O item nao possui conteudo.\n");
         return 0;
@@ -211,7 +227,7 @@ int LiberaItem(Item* item, FreeContItem Func)
 }
 
 // Conteúdo de um item:
-void* ConteudoItem(Item* item)
+void* Lista_ConteudoItem(Item* item)
 {
     return item->conteudo;
 }

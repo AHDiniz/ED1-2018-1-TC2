@@ -10,13 +10,16 @@ arvore.h: definições para arvore genérica
 
 #define ARVORE_H_
 
+#include "bitmap.h"
+#include "lista.h"
+
 /**
  * Tipo Árvore:
  * Será usada para a codificação dos caracteres em um texto;
  * Possui os seguintes campos:
  * Arvore* esq: ponteiro para a subárvore da esquerda;
  * Arvore* dir: ponteiro para a subárvore da direita;
- * char caracter: caracter analisado;
+ * unsigned char caracter: caracter analisado;
  * int ocorrencias: número de ocorrências do caracter;
 */
 typedef struct arvore Arvore;
@@ -28,7 +31,7 @@ typedef struct arvore Arvore;
  * Condições: nenhuma;
  * Efeitos Colaterais: nenhum;
 */
-Arvore* CriaFolha(char caracter, int ocorrencias);
+Arvore* Arvore_CriaFolha(unsigned char caracter, int ocorrencias);
 
 /**
  * Função que cria uma árvore:
@@ -37,7 +40,43 @@ Arvore* CriaFolha(char caracter, int ocorrencias);
  * Condições: subárvores existentes e alocadas;
  * Efeitos Colaterais: nenhum;
 */
-Arvore* CriaArvore(char caracter, int ocorrencias, Arvore* esq, Arvore* dir);
+Arvore* Arvore_CriaArvore(int ocorrencias, Arvore* esq, Arvore* dir);
+
+/**
+ * Função que retorna o caracter de uma árvore:
+ * Input: ponteiro para a árvore;
+ * Output: caracter;
+ * Condições: árvore existente e alocada;
+ * Efeitos Colaterais: nenhum;
+*/
+unsigned char Arvore_Caracter(Arvore* arvore);
+
+/**
+ * Função que retorna o valor ocorrências de uma árvore:
+ * Input: ponteiro para a árvore;
+ * Output: inteiro;
+ * Condições: árvore existente e alocada;
+ * Efeitos Colaterais: nenhum;
+*/
+int Arvore_Ocorrencias(Arvore* arvore);
+
+/**
+ * Função que retorna a árvore da direita de uma árvore:
+ * Input: ponteiro para a árvore;
+ * Output: árvore da direita;
+ * Condições: árvore existente e alocada;
+ * Efeitos Colaterais: nenhum;
+*/
+Arvore* Arvore_ArvoreDireita(Arvore* arvore);
+
+/**
+ * Função que retorna a árvore da esquerda de uma árvore:
+ * Input: ponteiro para a árvore;
+ * Output: árvore da esquerda;
+ * Condições: árvore existente e alocada;
+ * Efeitos Colaterais: nenhum;
+*/
+Arvore* Arvore_ArvoreEsquerda(Arvore* arvore);
 
 /**
  * Função que verifica se a árvore é uma folha ou não:
@@ -46,7 +85,7 @@ Arvore* CriaArvore(char caracter, int ocorrencias, Arvore* esq, Arvore* dir);
  * Condições: árvore existente e alocada;
  * Efeitos Colaterais: nenhum;
 */
-int EhFolha(Arvore* arvore);
+int Arvore_EhFolha(Arvore* arvore);
 
 /**
  * Função que calcula o número de nós folhas de uma árvore:
@@ -55,25 +94,25 @@ int EhFolha(Arvore* arvore);
  * Condições: árvore existente e alocada;
  * Efeitos Colaterais: nenhum;
 */
-int NumFolhas(Arvore* arvore);
+int Arvore_NumFolhas(Arvore* arvore);
 
 /**
- * Função que verifica se um nó pertence a uma dada árvore:
- * Inputs: ponteiro para raiz da árvore e para o nó alvo;
- * Output: inteiro booleano que diz se o nó pertence ou não à árvore;
- * Condições: variáveis existentes e alocadas;
+ * Função que verifica se um caracter pertence a algum nó de uma dada árvore:
+ * Inputs: ponteiro para raiz da árvore e caracter (sem sinal);
+ * Output: inteiro booleano que diz se o caracter pertence ou não à árvore;
+ * Condições: variáveis existentes;
  * Efeitos Colaterais: nenhum;
 */
-int Pertence(Arvore* raiz, Arvore* no);
+int Arvore_Pertence(Arvore* raiz, unsigned char* c);
 
 /**
- * Função que retorna o caminho da raiz até um dado nó:
- * Inputs: nó raiz e nó alvo;
- * Output: string com os dados de cada nó no caminho
- * Condições: ambas as árvores existentes e alocadas;
- * Efeitos Colaterais: nenhum; 
+ * Função que retorna, em um bitmap, o caminho da raiz até um dado nó:
+ * Inputs: bitmap, nó raiz, ponteiro para a primeira posição onde ficará a sequncia no bitmap e carácter do nó alvo (deve ser um carácter que esteja em uma única posição na árvore);
+ * Output: nenhum;
+ * Condições: ambas as árvores e bitmap existentes e alocadas;
+ * Efeitos Colaterais: bitmap contem o caminho, pos é incrementado; 
 */
-char* Caminho(Arvore* raiz, Arvore* no);
+Lista* Arvore_Caminho(Arvore *raiz, Arvore *alvo);
 
 /**
  * Função que destrói uma árvore da memória:
@@ -82,6 +121,88 @@ char* Caminho(Arvore* raiz, Arvore* no);
  * Condições: árvore existente e alocada;
  * Efeitos Colaterais: a árvore será apagada da memória;
 */
-Arvore* DestroiArvore(Arvore* raiz);
+Arvore* Arvore_DestroiArvore(Arvore* raiz);
+
+/**
+ * Função que imprime uma árvore:
+ * Input: ponteiro para o nó raiz da árvore;
+ * Output: nenhum;
+ * Condições: árvore existente e alocada;
+ * Efeitos Colaterais: nenhum;
+*/
+void Arvore_ImprimeArvore(Arvore* raiz);
+
+
+
+
+
+
+
+
+
+// Funções e estruturas auxiliares utilizadas na procura do caminho da raiz de uma árvore até um nó dessa árvore:
+
+/**
+ * Tipo Caminho:
+ * Será usada para guardar o caminho para cada carácter numa árvore;
+ * Possui os seguintes campos:
+ * unsigned char caracter;
+ * Lista* caminho;
+*/
+typedef struct caminho Caminho;
+
+/**
+ * Função de criação de uma lista de inteiros:
+ * Input: nenhum;
+ * Output: ponteiro para lista de inteiros criada;
+ * Condições: nenhuma;
+ * Efeitos Colaterais: nenhum;
+*/
+Lista *ListaCaminho_CriaListaInt(void);
+
+/**
+ * Função de inicialização de um inteiro para ser adicionado a lista de inteiros:
+ * Input: int;
+ * Output: ponteiro para o inteiro;
+ * Condições: nenhuma;
+ * Efeitos Colaterais: nenhum;
+*/
+int *ListaCaminho_CriaInt(int valor);
+
+/**
+ * Função de criação da lista de caminhos:
+ * Input: ponteiro para a árvore de Huffman;
+ * Output: lista contendo todos os carácteres e seus respectivos caminhos;
+ * Condições: árvore existe;
+ * Efeitos Colaterais: nenhum;
+*/
+Lista *ListaCaminho_CriaLista(Arvore *huffman);
+
+/**
+ * Função que retorna o caminho para determinado carácter:
+ * Input: ponteiro para a lista de caminhos e carácter;
+ * Output: caminho para o carácter;
+ * Condições: lista existente e alocada e carácter pertencente a lista;
+ * Efeitos Colaterais: nenhum;
+*/
+Lista *ListaCaminho_Caminho(Lista *listaCam, unsigned char caracter);
+
+/**
+ * Função que destrói uma lista de caminhos da memória:
+ * Input: ponteiro para a lista de caminhos;
+ * Output: ponteiro vazio;
+ * Condições: lista existente e alocada;
+ * Efeitos Colaterais: a lista será apagada da memória;
+*/
+Lista *ListaCaminho_DestroiLista(Lista *lista);
+
+/**
+ * Função para liberar um inteiro da lista de inteiros:
+ * Input: ponteiro genérico para o conteudo;
+ * Output: nenhum;
+ * Condições: conteudo existente e alocado;
+ * Efeitos Colaterais: o conteudo será apagado da memória;
+*/
+void ListaCaminho_LiberaInt(void *conteudo);
 
 #endif

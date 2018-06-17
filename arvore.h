@@ -10,7 +10,6 @@ arvore.h: definições para arvore genérica
 
 #define ARVORE_H_
 
-#include "bitmap.h"
 #include "lista.h"
 
 /**
@@ -106,11 +105,11 @@ int Arvore_NumFolhas(Arvore* arvore);
 int Arvore_Pertence(Arvore* raiz, unsigned char* c);
 
 /**
- * Função que retorna, em um bitmap, o caminho da raiz até um dado nó:
- * Inputs: bitmap, nó raiz, ponteiro para a primeira posição onde ficará a sequncia no bitmap e carácter do nó alvo (deve ser um carácter que esteja em uma única posição na árvore);
- * Output: nenhum;
- * Condições: ambas as árvores e bitmap existentes e alocadas;
- * Efeitos Colaterais: bitmap contem o caminho, pos é incrementado; 
+ * Função que retorna, em uma lista de inteiros, o caminho da raiz até um dado nó:
+ * Inputs: nó raiz e nó alvo;
+ * Output: lista de inteiros contendo o caminho;
+ * Condições: ambas as árvores existentes e alocadas;
+ * Efeitos Colaterais: nenhum; 
 */
 Lista* Arvore_Caminho(Arvore *raiz, Arvore *alvo);
 
@@ -204,5 +203,14 @@ Lista *ListaCaminho_DestroiLista(Lista *lista);
  * Efeitos Colaterais: o conteudo será apagado da memória;
 */
 void ListaCaminho_LiberaInt(void *conteudo);
+
+/**
+ * Função que imprime uma lista de inteiros:
+ * Input: ponteiro para a lista;
+ * Output: nenhum;
+ * Condições: lista existente e alocada do tipo int*;
+ * Efeitos Colaterais: nenhum;
+*/
+void ListaCaminho_ImprimeListaInt(Lista* lista);
 
 #endif

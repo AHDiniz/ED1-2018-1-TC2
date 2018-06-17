@@ -30,13 +30,13 @@ static void Arvore_CaminhoAux(Arvore* raiz, Arvore* alvo, Lista* caminho)
     else if (Arvore_Pertence(raiz->esq, (unsigned char*) &(alvo->caracter)))
     {
         Item* itemCaminho = Lista_NovoItem("int*", ListaCaminho_CriaInt(0));
-        Lista_ListaAdd(caminho, itemCaminho, Lista_TamanhoLista(caminho) - 1);
+        Lista_ListaAdd(caminho, itemCaminho, Lista_TamanhoLista(caminho));
         Arvore_CaminhoAux(raiz->esq, alvo, caminho);
     }
     else if (Arvore_Pertence(raiz->dir, (unsigned char*) &(alvo->caracter)))
     {
         Item* itemCaminho = Lista_NovoItem("int*", ListaCaminho_CriaInt(1));
-        Lista_ListaAdd(caminho, itemCaminho, Lista_TamanhoLista(caminho) - 1);
+        Lista_ListaAdd(caminho, itemCaminho, Lista_TamanhoLista(caminho));
         Arvore_CaminhoAux(raiz->dir, alvo, caminho);
     }
 }
@@ -260,4 +260,16 @@ int *ListaCaminho_CriaInt(int valor)
 void ListaCaminho_LiberaInt(void *conteudo)
 {
     free(conteudo);
+}
+
+// Imprimindo uma lista de inteiros
+void ListaCaminho_ImprimeListaInt(Lista* lista)
+{
+    int i;
+    Lista *aux;
+    printf("\n");
+    for(i = 0 ; i < Lista_TamanhoLista(lista) ; i++)
+    {
+        printf("%d = %d\n", i, *((int*) Lista_AchaItem(lista,i)));
+    }
 }

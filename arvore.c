@@ -220,7 +220,7 @@ Lista *ListaCaminho_Caminho(Lista *listaCam, unsigned char caracter)
 {
     int i;                                             // variável de incrementação
     Caminho *p;                                        // variável auxiliar de busca
-    for (i = 0; i < Lista_TamanhoLista(listaCam); i++) // varre toda a lista
+    for (i = 0; i <= Lista_TamanhoLista(listaCam) -1; i++) // varre toda a lista
     {
         p = (Caminho *)Lista_AchaItem(listaCam, i); // auxiliar recebe o struct caminho de um carácter
         if (p->caracter == caracter)                // se for o carácter buscado interrompe a busca
@@ -266,7 +266,6 @@ void ListaCaminho_LiberaInt(void *conteudo)
 void ListaCaminho_ImprimeListaInt(Lista* lista)
 {
     int i;
-    Lista *aux;
     printf("\n");
     for(i = 0 ; i < Lista_TamanhoLista(lista) ; i++)
     {

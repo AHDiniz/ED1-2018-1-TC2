@@ -137,7 +137,6 @@ void Lista_ListaRemove(Lista* lista, const unsigned int pos, FreeContItem Func)
     {
         Item* alvo = lista->primeiro; // Auxiliar para não perder a referência do item a ser removido
         lista->primeiro = lista->primeiro->proximo; // Atualizando o valor do primeiro item da lista
-        Item* item;
         Lista_LiberaItem(alvo, Func); // Liberando o item alvo da memória
     }
     else

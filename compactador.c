@@ -374,7 +374,7 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
         fputc(entrada[i], output);
         i += 1;
     }
-    fputc('\n',output); // adiciona \n
+    fputc('\0',output); // adiciona \0
 
     InicializaVetor(caracter, 8); // inicializando todos os bits do vetor como 0
 
@@ -452,7 +452,7 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
 
         printf("volta pro inicio...\n");
         rewind(output); // volta ao inicio do arquivo
-        for(j = 0, c = fgetc(output) ; c != '\n' ; c = fgetc(output), j++); // pula a terminação
+        for(j = 0, c = fgetc(output) ; c != '\0' ; c = fgetc(output), j++); // pula a terminação
         printf("Le...\n");
         c = fgetc(output); // lê o próximo carácter
         printf("Binario...\n");
@@ -487,8 +487,10 @@ void Compactador_Descompacta(char* entrada)
     Arvore *atual; // árvore auxiliar de busca
     int naoUtilizados; // armazena quantos bits não devem ser considerados no ultimo carácter do arquivo
     int fda = 0; // variável auxiliar que indica o fim do arquivo
-    fgets(term,10,input);
-    term[strlen(term)-1] = '\0';
+    for(i = 0, term[0] = fgetc(input) ; term[i] != '\0' ; i++)
+    {
+        term[i+1] = fgetc(input);
+    }
 
     char *saida = (char*) malloc(strlen(entrada) + strlen(term) -3); // alocando nome do arquivo de saída
     strcpy(saida,entrada); // copiando o nome do arquivo de entrada
@@ -575,6 +577,7 @@ void Compactador_Descompacta(char* entrada)
     fclose(input); // fechando arquivo de leitura
     fclose(output); // fechando arquivo de escrita
     // Destruindo as estruturas utilizadas
+    free(saida);
     Lista_DestroiLista(bits,ListaCaminho_LiberaInt); // destruindo a lista de leitura
     Arvore_DestroiArvore(huffman); // destruindo a árvore de Huffman
 }

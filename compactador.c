@@ -202,15 +202,21 @@ static Arvore* DescompactaArvore(FILE* input, Lista* bits, int* vet)
     {
         Lista_ListaRemove(bits,0,ListaCaminho_LiberaInt); // remove esse bit da lista
 
+        int i;
         if(Lista_TamanhoLista(bits) < 8) // verifica se todos os bits nescessarios estão na lista
         {
             PegaCaracter(input,bits,vet); // caso não, lê mais um byte
         }
 
+        // Inserindo os 8 primeiros bits da lista em vet
+        for(i = 0 ; i < 8 ; i++)
+        {
+            vet[i] = *((int*)Lista_AchaItem(bits,i));
+        }
+
         // Cria uma nova árvore folha com o carácter lido nos atuais primeiros 8 bits da lista
         Arvore* folha = Arvore_CriaFolha(ConverteParaCharacter(vet), 0);
         // Remaove esses bits da lista
-        int i;
         for(i = 0 ; i < 8 ; i++)
         {
             Lista_ListaRemove(bits,0,ListaCaminho_LiberaInt);
@@ -383,8 +389,6 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     {
         Lista_ListaAdd(bits, Lista_NovoItem("int*",ListaCaminho_CriaInt(0)),Lista_TamanhoLista(bits));
     }
-    printf("bits =\n");
-    ListaCaminho_ImprimeListaInt(bits);
 
     // Imprimindo a árvore compactada
     // Compacta a árvore em bits

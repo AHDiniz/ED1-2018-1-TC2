@@ -354,8 +354,7 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
 // Compactando e imprimindo o arquivo
 void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
 {
-    int i, j; // Variavel de incrementação
-    int len = strlen(entrada);
+    int i; // Variavel de incrementação
     FILE* output = fopen(saida, "w+"); // abrindo arquivo de escrita
     FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
     char c; // variável auxiliar para leitura do arquivo
@@ -363,24 +362,6 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     Lista* bits = ListaCaminho_CriaListaInt(); // lista auxiliar que guarda a sequência de bits a serem impressos
     Lista* l; // lista auxiliar que guarda o caminho até certo carácter
     int caracter[8]; // vetor auxiliar que guarda o carácter a ser impresso
-
-    //  Encontra a posição do ultimo ponto na string entrada
-    for(i = len -1 ; i >= 0 ; i--)
-    {
-        if(entrada[i] == '.')
-        {
-            break;
-        }
-    }
-
-    // Adiciona a terminação original da entrada no arquivo compactado
-    i += 1;
-    while(i != strlen(entrada))
-    {
-        fputc(entrada[i], output);
-        i += 1;
-    }
-    fputc('\0',output); // adiciona \0
 
     InicializaVetor(caracter, 8); // inicializando todos os bits do vetor como 0
 
@@ -456,9 +437,8 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
 
         printf("volta pro inicio...\n");
         rewind(output); // volta ao inicio do arquivo
-        for(j = 0, c = fgetc(output) ; c != '\0' ; c = fgetc(output), j++); // pula a terminação
         printf("Le...\n");
-        c = fgetc(output); // lê o próximo carácter
+        c = fgetc(output); // lê o primeiro carácter
         printf("Binario...\n");
         ConverteParaBinario(caracter,c); // converte-o para binário
         printf("Substitui...\n");
@@ -466,9 +446,8 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
 
         printf("Volta inicio...\n");
         rewind(output); // retorna ao começo novamente
-        fseek(output,j+1,SEEK_SET); // pula a terminação novamente
         printf("putc...\n");
-        fputc(ConverteParaCharacter(caracter),output); // substitui o próximo carácter
+        fputc(ConverteParaCharacter(caracter),output); // substitui o primeiro carácter
     }
     printf("Fecha output...\n");
     fclose(output); // fechando arquivo de escrita
@@ -479,29 +458,17 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
 }
 
 // Descompactando e imprimindo um arquivo:
-void Compactador_Descompacta(char* entrada)
+void Compactador_Descompacta(char* entrada, char* saida)
 {
     int i;
-    FILE* output; // arquivo de saída
-    char term[10]; // string que armazena o tipo do arquivo de saída
     FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
+    FILE* output = fopen(saida, "w"); // abrindo arquivo de escrita
     Lista *bits = ListaCaminho_CriaListaInt(); // lista auxiliar que armazenar a sequencia binária lida do arquivo de entrada
     int vet[8]; // auxiliar de conversão
     Arvore *huffman; // árvore de compactação/descompactação armazenada no cabeçalho do arquivo compactado
     Arvore *atual; // árvore auxiliar de busca
     int naoUtilizados; // armazena quantos bits não devem ser considerados no ultimo carácter do arquivo
     int fda = 0; // variável auxiliar que indica o fim do arquivo
-    for(i = 0, term[0] = fgetc(input) ; term[i] != '\0' ; i++)
-    {
-        term[i+1] = fgetc(input);
-    }
-
-    char *saida = (char*) malloc(strlen(entrada) + strlen(term) -3); // alocando nome do arquivo de saída
-    strcpy(saida,entrada); // copiando o nome do arquivo de entrada
-    saida[strlen(entrada)-4] = '\0'; // removendo "comp"
-    strcat(saida,term); // acrescentando terminação original
-
-    output = fopen(saida, "w"); // abrindo arquivo de escrita
 
     InicializaVetor(vet,8);
     //fseek(input, strlen(term) +1, SEEK_SET);

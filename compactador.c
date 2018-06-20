@@ -122,7 +122,7 @@ static int ConverteParaInt(int* vet)
  * Condições: arquivo existe, lista alocada e vetor com tamanho máximo de pelo menos 8;
  * Efeitos Colaterais: lista incrementada em 8 bits e vetor contem o binário;
 */
-static int PegaCaracter(FILE* input, Lista* lista, int* vet)
+static void PegaCaracter(FILE* input, Lista* lista, int* vet, int* tam)
 {
     int i; // variável de incrementação
     char c; // variável auxiliar para leitura do arquivo
@@ -141,6 +141,8 @@ static int PegaCaracter(FILE* input, Lista* lista, int* vet)
         item = Lista_NovoItem("int*", ListaCaminho_CriaInt(vet[i]));
         Lista_ListaAdd(lista, item, Lista_TamanhoLista(lista));
     }
+
+    *tam -= 8;
 
     return 1;
 }
@@ -179,11 +181,11 @@ static void CompactaArvore(Lista* lista, Arvore* arvore, int* vet)
  * Condições: arquivo existe, lista alocada e vetor com tamanho máximo de pelo menos 8;
  * Efeitos Colaterais: lista modificada;
 */
-static Arvore* DescompactaArvore(FILE* input, Lista* bits, int* vet)
+static Arvore* DescompactaArvore(FILE* input, Lista* bits, int* vet,int* tam)
 {
     if(Lista_ListaVazia(bits)) // se não houverem bits para ser lidos
     {
-        PegaCaracter(input,bits,vet); // lê um byte do arquivo
+        PegaCaracter(input,bits,vet,tam); // lê um byte do arquivo
     }
     if( *((int*) Lista_AchaItem(bits, 0))) // se o primeiro bit lido for 1
     {
@@ -202,7 +204,7 @@ static Arvore* DescompactaArvore(FILE* input, Lista* bits, int* vet)
         int i;
         if(Lista_TamanhoLista(bits) < 8) // verifica se todos os bits nescessarios estão na lista
         {
-            PegaCaracter(input,bits,vet); // caso não, lê mais um byte
+            PegaCaracter(input,bits,vet,tam); // caso não, lê mais um byte
         }
 
         // Inserindo os 8 primeiros bits da lista em vet
@@ -430,12 +432,12 @@ void Compactador_Descompacta(char* entrada, char* saida)
     Arvore *huffman; // árvore de compactação/descompactação armazenada no cabeçalho do arquivo compactado
     Arvore *atual; // árvore auxiliar de busca
     int naoUtilizados; // armazena quantos bits não devem ser considerados no ultimo carácter do arquivo
-    int fda = 0; // variável auxiliar que indica o fim do arquivo
+    int fda; // variável auxiliar que indica o número de bits no arquivo
 
     InicializaVetor(vet,8);
     //fseek(input, strlen(term) +1, SEEK_SET);
 
-    PegaCaracter(input,bits,vet); // pegando primeiro carácter
+    PegaCaracter(input,bits,vet,fda); // pegando primeiro carácter
     naoUtilizados = ConverteParaInt(vet); // convertendo seus 3 primeiros bits para inteiro
     // Removendo esses 3 bits da lista
     for(i = 0 ; i < 3 ; i++)
@@ -443,44 +445,37 @@ void Compactador_Descompacta(char* entrada, char* saida)
         Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt);
     }
 
+    fda = SuaFuncao() *8 - naoUtilizados;
+
     // Descompactando a árvore de Huffman
-    huffman = DescompactaArvore(input, bits, vet);
+    huffman = DescompactaArvore(input, bits, vet, fda);
 
     // Preparando para iniciar o loop
     // Incrementando a lista de inteiros, caso esteja vazia
     if(Lista_ListaVazia(bits))
     {
-        PegaCaracter(input,bits,vet);
+        PegaCaracter(input,bits,vet,fda);
     }
 
     atual = huffman; // inicializando auxiliar
-    while(!Lista_ListaVazia(bits)) // loop para quando a lista de inteiros estiver vazia
+    while(fda > 0) // loop para quando a lista de inteiros estiver vazia
     {
         // Incrementando a lista caso seu tamanho seja menor que 8
-        if(Lista_TamanhoLista(bits) <= 8)
+        if(Lista_ListaVazia(bits))
         {
-            if( !(PegaCaracter(input,bits,vet) || fda) ) // se PegaCaracter retornar 0, restou apenas o ultimo carácter do arquivo
-            {
-                fda = 1; // incrementa fda para que essa condicional não se repita
-                // Remove da lista os bits não utilizados, cuja quantidade foi informada no cabeçalho
-                for(i = 0 ; i < naoUtilizados ; i++)
-                {
-                    Lista_ListaRemove(bits, 8 - naoUtilizados, ListaCaminho_LiberaInt);
-                }
-            }
+            PegaCaracter(input,bits,vet,fda);
         }
         
         // Avaliando caminho para a folha
         if( *((int*) Lista_AchaItem(bits,0)) ) // se o bit for 1
         {
             atual = Arvore_ArvoreDireita(atual); // segue para a árvore da direita
-            Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove o bit já lido
         }
         else // se o bit for 0
         {
             atual = Arvore_ArvoreEsquerda(atual); // segue para a árvore da esquerda
-            Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove o bit já lido
         }
+        Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove o bit já lido
         
         // Verificando se a árvore atual é uma folha
         if(Arvore_EhFolha(atual))

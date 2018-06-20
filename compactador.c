@@ -159,17 +159,14 @@ static void CompactaArvore(Lista* lista, Arvore* arvore, int* vet)
        int i; // Variavel de incrementação
        ConverteParaBinario(vet,Arvore_Caracter(arvore)); // converte o carácter para binário
        Lista_ListaAdd(lista,Lista_NovoItem("int*",ListaCaminho_CriaInt(0)),Lista_TamanhoLista(lista)); // insere 0 (codigo para folha) na lista
-       printf("%d ", *((int*) Lista_AchaItem(lista,Lista_TamanhoLista(lista) -1)));
        for(i = 0 ; i < 8 ; i++) // insere em seguida o caracter em binário
        {
            Lista_ListaAdd(lista,Lista_NovoItem("int*",ListaCaminho_CriaInt(vet[i])),Lista_TamanhoLista(lista));
-           printf("%d ", *((int*) Lista_AchaItem(lista,Lista_TamanhoLista(lista) -1)));
        }
     }
     else // se a árvore for um nó
     {
         Lista_ListaAdd(lista,Lista_NovoItem("int*",ListaCaminho_CriaInt(1)),Lista_TamanhoLista(lista)); // insere 1 (codigo para nó) na lista
-        printf("%d ", *((int*) Lista_AchaItem(lista,Lista_TamanhoLista(lista) -1)));
         CompactaArvore(lista,Arvore_ArvoreEsquerda(arvore),vet); // compacta a árvore da esquerda
         CompactaArvore(lista,Arvore_ArvoreDireita(arvore), vet); // compacta a árvore da direita
     }
@@ -237,14 +234,11 @@ static Arvore* DescompactaArvore(FILE* input, Lista* bits, int* vet)
 static void ImprimeCaracter(int* vet, Lista* lista, FILE* output)
 {
     int i; // Variavel de incrementação
-    printf("T = %d\n", Lista_TamanhoLista(lista));
     for(i = 0 ; i < 8 ; i++)
     {
         vet[i] = *((int*) Lista_AchaItem(lista,0));
-        printf("%d ", vet[i]);
         Lista_ListaRemove(lista,0,ListaCaminho_LiberaInt);
     }
-    printf("T = %d\n", Lista_TamanhoLista(lista));
 
     fputc(ConverteParaCharacter(vet),output);
 }
@@ -259,21 +253,17 @@ static void ImprimeCaracter(int* vet, Lista* lista, FILE* output)
 static int* MontaVetorPesos(char* arquivo)
 {
     int i; // Variavel de incrementação
-    printf("Alocando...\n");
     int *pesos = (int*) malloc(sizeof(int) * ASCII_TAM); // vetor que guarda o peso do caracter na masma posição de sua posição da tabela ASCII
     char c; // auxiliar que guarda o caracter
 
     // Inicializando ocorrencias
-    printf("Inicializando...\n");
     for(i = 0 ; i < ASCII_TAM ; i++)
     {
         pesos[i] = 0;
     }
 
-    printf("Abrindo input...\n");
     FILE *input = fopen(arquivo, "r"); // abrindo arquivo
 
-    printf("Loop...\n");
     c = fgetc(input); // selecionando primeiro caracter
     while(c != EOF) // percorrendo todo arquivo
     {
@@ -281,7 +271,6 @@ static int* MontaVetorPesos(char* arquivo)
         c = fgetc(input); // atualizando caracter
     }
 
-    printf("Fechando input...\n");
     fclose(input); // fechando arquivo
     return pesos;
 }
@@ -373,31 +362,19 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
 
     // Imprimindo a árvore compactada
     // Compacta a árvore em bits
-    Arvore_ImprimeArvore(arvoreHuffman);
-    printf("\nCompactando arvore:\n");
     CompactaArvore(bits,arvoreHuffman, caracter);
-    printf("\n");
-    printf("bits =\n");
-    ListaCaminho_ImprimeListaInt(bits);
     // Imprime os bits da lista, de 8 em 8, como carácteres
-    printf("Imprimindo...\n");
     while(Lista_TamanhoLista(bits) >= 8)
     {
         ImprimeCaracter(caracter,bits,output);
     }
-    printf("\n");
-    printf("bits =\n");
-    ListaCaminho_ImprimeListaInt(bits);
 
     // Imprimindo em seguida a conversão do arquivo de entrada
-    printf("Loop...\n");
     c = fgetc(input); // inicializando com o primeiro carácter
     while(c != EOF) // varrendo o arquivo de entrada
     {
-        printf("Busca caminho...\n");
         l = ListaCaminho_Caminho(caminho,c); // buscando o caminho para o carácter lido
         // Inserindo o caminho na lista bits
-        printf("Insere caminho...\n");
         for(i = 0 ; i < Lista_TamanhoLista(l) ; i++)
         {
             Lista_ListaAdd(bits,Lista_NovoItem("int*",ListaCaminho_CriaInt( *((int*) Lista_AchaItem(l,i)) ) ),Lista_TamanhoLista(bits));
@@ -406,50 +383,35 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
         // Imprimindo os bits caso completem um carácter
         while(Lista_TamanhoLista(bits) >= 8)
         {
-            printf("Imprimindo...\n");
             ImprimeCaracter(caracter,bits,output);
         }
 
-        printf("Atualizando...\n");
         c = fgetc(input); // atualizando carácter
     }
-    printf("Fecha input...\n");
     fclose(input); // fechando arquivo de leitura
 
-    printf("Sobras?...\n");
     if(!Lista_ListaVazia(bits)) // se sobrarem bits para serem impressos
     {
-        printf("Tamanho...\n");
         i = Lista_TamanhoLista(bits); // guardando tamanho atual da lista
         // Completa a lista até 8 bits
-        printf("Completando...\n");
         while(Lista_TamanhoLista(bits) < 8)
         {
             Lista_ListaAdd(bits,Lista_NovoItem("int*",ListaCaminho_CriaInt(0)),Lista_TamanhoLista(bits));
         }
         
         // Imprime o último carácter
-        printf("Imprime ultimo...\n");
         ImprimeCaracter(caracter,bits,output);
         
-        printf("Recebe sobra...\n");
         i = 8 - i; // i recebe o número de bits sobrando no último carácter
 
-        printf("volta pro inicio...\n");
         rewind(output); // volta ao inicio do arquivo
-        printf("Le...\n");
         c = fgetc(output); // lê o primeiro carácter
-        printf("Binario...\n");
         ConverteParaBinario(caracter,c); // converte-o para binário
-        printf("Substitui...\n");
         ConverteIntParaBinario(caracter,i); // substitui os 3 bits reservados no inicio pelo valor de i em binário
 
-        printf("Volta inicio...\n");
         rewind(output); // retorna ao começo novamente
-        printf("putc...\n");
         fputc(ConverteParaCharacter(caracter),output); // substitui o primeiro carácter
     }
-    printf("Fecha output...\n");
     fclose(output); // fechando arquivo de escrita
 
     // Destruindo as listas utilizadas
@@ -473,82 +435,65 @@ void Compactador_Descompacta(char* entrada, char* saida)
     InicializaVetor(vet,8);
     //fseek(input, strlen(term) +1, SEEK_SET);
 
-    printf("Pegando caracter...\n");
     PegaCaracter(input,bits,vet); // pegando primeiro carácter
     naoUtilizados = ConverteParaInt(vet); // convertendo seus 3 primeiros bits para inteiro
     // Removendo esses 3 bits da lista
-    printf("NU = %d\nRemovendo primeiros 3...\n", naoUtilizados);
     for(i = 0 ; i < 3 ; i++)
     {
         Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt);
     }
 
     // Descompactando a árvore de Huffman
-    printf("Descompactando arvore...\n");
     huffman = DescompactaArvore(input, bits, vet);
-    Arvore_ImprimeArvore(huffman);
 
     // Preparando para iniciar o loop
     // Incrementando a lista de inteiros, caso esteja vazia
     if(Lista_ListaVazia(bits))
     {
-        printf("Pegando caracter...\n");
         PegaCaracter(input,bits,vet);
     }
 
     atual = huffman; // inicializando auxiliar
-    printf("Loop...\n");
     while(!Lista_ListaVazia(bits)) // loop para quando a lista de inteiros estiver vazia
     {
         // Incrementando a lista caso seu tamanho seja menor que 8
         if(Lista_TamanhoLista(bits) <= 8)
         {
-            printf("Pegando caracter...\n");
             if( !(PegaCaracter(input,bits,vet) || fda) ) // se PegaCaracter retornar 0, restou apenas o ultimo carácter do arquivo
             {
-                printf("Ultimo caracter...\n");
                 fda = 1; // incrementa fda para que essa condicional não se repita
                 // Remove da lista os bits não utilizados, cuja quantidade foi informada no cabeçalho
                 for(i = 0 ; i < naoUtilizados ; i++)
                 {
-                    printf("Removendo...\n");
-                    Lista_ListaRemove(bits, Lista_TamanhoLista(bits) -1, ListaCaminho_LiberaInt);
+                    Lista_ListaRemove(bits, 8 - naoUtilizados, ListaCaminho_LiberaInt);
                 }
             }
         }
+        
+        // Avaliando caminho para a folha
+        if( *((int*) Lista_AchaItem(bits,0)) ) // se o bit for 1
+        {
+            atual = Arvore_ArvoreDireita(atual); // segue para a árvore da direita
+            Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove o bit já lido
+        }
+        else // se o bit for 0
+        {
+            atual = Arvore_ArvoreEsquerda(atual); // segue para a árvore da esquerda
+            Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove o bit já lido
+        }
+        
         // Verificando se a árvore atual é uma folha
-        printf("Eh folha?...\n");
         if(Arvore_EhFolha(atual))
         {
-            printf("Sim, imprimindo...\n");
             fputc(Arvore_Caracter(atual), output); // caso sim, imprime seu carácter
             atual = huffman; // reiniciando atual
         }
-        else // caso não seja uma folha, será avaliado como caminho para a folha
-        {
-            printf("Nao, Atualizando...\n");
-            if( *((int*) Lista_AchaItem(bits,0)) ) // se o bit for 1
-            {
-                printf("Para direita...\n");
-                atual = Arvore_ArvoreDireita(atual); // segue para a árvore da direita
-                Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove o bit já lido
-            }
-            else // se o bit for 0
-            {
-                printf("Para esquerda...\n");
-                atual = Arvore_ArvoreEsquerda(atual); // segue para a árvore da esquerda
-                Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove o bit já lido
-            }
-        }
-
     }
 
-    printf("Fechando arquivos...\n");
     // Fechando os arquivos
     fclose(input); // fechando arquivo de leitura
     fclose(output); // fechando arquivo de escrita
     // Destruindo as estruturas utilizadas
-    free(saida);
     Lista_DestroiLista(bits,ListaCaminho_LiberaInt); // destruindo a lista de leitura
     Arvore_DestroiArvore(huffman); // destruindo a árvore de Huffman
 }

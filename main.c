@@ -20,13 +20,11 @@ int main(int argc, char *argv[])
     if(!strcmp(argv[1],"-c")) // compactar
     {
         // Criando a árvore de Huffman
-        printf("Arvore...\n");
         Arvore* arvHuff = Compactador_MontaArvoreHuffman(argv[2]);
 
         // Preparando o nome do arquivo de escrita
         char *novoArquivo = AddComp(argv[2]); // acrescentando terminação .comp
 
-        printf("Compactando...\n");
         Compactador_Compacta(arvHuff, argv[2], novoArquivo); // compactando e impimindo num arquivo com o novo nome
 
         free(novoArquivo); // liberando nome
@@ -37,9 +35,7 @@ int main(int argc, char *argv[])
         if(!strcmp(argv[1], "-d")) // descompactar
         {
             char *novoArquivo = RemComp(argv[2]); // removendo terminação .comp
-            printf("Descompactando...\n");
             Compactador_Descompacta(argv[2], novoArquivo); // descompactando e imprimindo o arquivo com o novo nome
-            printf("Descompact fim.\n");
             free(novoArquivo); // liberando nome
         }
         else // caso entrada seja diferente imprime mensagem de erro

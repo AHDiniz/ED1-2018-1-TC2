@@ -4,7 +4,7 @@ CC = gcc
 
 SRC = $(wildcard *.c)
 
-OBJ = $(SRC:.c=.0)
+OBJ = $(SRC:.c=.o)
 
 EXE = compact.exe
 

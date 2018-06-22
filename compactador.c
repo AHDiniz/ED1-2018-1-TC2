@@ -12,101 +12,108 @@ compactador.c: implementações para compactador
 #include <math.h>
 #include "lista.h"
 #include "compactador.h"
+#include "bitmap.h"
 
 #define ASCII_TAM 256
+#define BM_MIN_TAM 500 // em bytes
 
 /**
- * Função auxiliar que inicializa n posições de um vetor:
- * Input: vetor e número de posições;
+ * Função auxiliar que inicializa n posições em um bitmap:
+ * Input: bitmap e número de posições;
  * Output: nunhum;
- * Condições: vetor existe e tem tamanho máximo >= n;
- * Efeitos Colaterais: todas as n primeiras posicões do vetor ficam iguais a 0;
+ * Condições: bitmap existe e tem tamanho máximo maior ou igual a seu tamanho atual +n;
+ * Efeitos Colaterais: bitmap sofre incremento de n bits;
 */
-static void InicializaVetor(int* vet, unsigned int n)
+static void InicializaBitmap(bitmap* map, unsigned int n)
 {
     int i; // Variavel de incrementação
-    for(i = 0 ; i < n ; i++) // inicializando conteudo do bitvet como 0
+    // Inicializando conteudo no final do bitmap como 0 n vezes
+    for(i = 0 ; i < n ; i++)
     {
-        vet[i] = 0;
+        bitmapAppendLeastSignificantBit(map,0);
     }
 }
 
 /**
  * Função auxiliar que converte um caracter sem sinal para binário:
- * Input: vetor que armazenará o binário e um caracter sem sinal;
- * Output: vetor contendo o caracter convertido em seus 8 primeiros bits (posição 0 mais significativa);
- * Condições: vetor existe e tem tamanho máximo >= 8;
- * Efeitos Colaterais: vetor contem o binário de 8 bits;
+ * Input: bitmap que armazenará o binário e um caracter sem sinal;
+ * Output: nenhum;
+ * Condições: bitmap existe e tem tamanho máximo maior ou igual a seu tamanho atual +8;
+ * Efeitos Colaterais: bitmap contem o binário de 8 bits no final;
 */
-static void ConverteParaBinario(int* vet, unsigned char a)
+static void ConverteParaBinario(bitmap* map, unsigned char a)
 {
     int i; // Variavel de incrementação
+    int len; // tamanho do bitmap
 
-    // Realizando divisões por 2 e armazenado os restos no bitvet
-    for(i = 7 ; i >= 0 ; a /= 2, i--)
+    InicializaBitmap(map,8); // inicializando 8 bits no fim do bitmap
+    len = bitmapGetLength(*map); // len recebe seu novo tamanho
+
+    // Realizando divisões por 2 e armazenado os restos no bitmap (inseridos em ordem inversa)
+    for(i = 0 ; i < 8 ; a /= 2, i++)
     {
-        vet[i] = a % 2;
+        bitmapSetBit(map,len -i -1, a % 2);
     }
 }
 
 /**
  * Função auxiliar que converte um inteiro sem sinal menor que 8 para binário:
- * Input: vetor que armazenará o binário e um inteiro sem sinal;
- * Output: vetor contendo o inteiro convertido em seus 3 primeiros bits (posição 0 mais significativa);
- * Condições: vetor existe e tem tamanho máximo >= 3;
- * Efeitos Colaterais: vetor contem o binário de 3 bits;
+ * Input: bitmap que armazenará o binário e um inteiro sem sinal;
+ * Output: nenhum;
+ * Condições: vetor existe e seus 3 primeiros bit são iguais a 0;
+ * Efeitos Colaterais: vetor contem o binário em seus 3 primeiros bits;
 */
-static void ConverteIntParaBinario(int* vet, unsigned int a)
+static void ConverteIntParaBinario(bitmap* map, unsigned int a)
 {
     int i; // variavel de incrementação
 
-    // Realizando divisões por 2 e armazenado os restos no bitvet
-    for(i = 2 ; i >= 0 ; a /= 2, i--)
+    // Realizando divisões por 2 e armazenado os restos no bitmap (inseridos em ordem inversa)
+    for(i = 0 ; i < 3 ; a /= 2, i++)
     {
-        vet[i] = a % 2;
+        bitmapSetBit(map,2 -i, a % 2);
     }
 }
 
 /**
  * Função auxiliar que converte um binário para caracter sem sinal:
- * Input: vetor contendo um binário de 8 bits;
- * Output: o caracter convertido dos 8 primeiros bits do vetor;
- * Condições: vetor existentente e válido;
+ * Input: bitmap contendo um binário de 8 bits e posição de seu primeiro bit;
+ * Output: o caracter sem sinal convertido;
+ * Condições: bitmap existentente e válido;
  * Efeitos Colaterais: nenhum;
 */
-static unsigned char ConverteParaCharacter(int* vet)
+static unsigned char ConverteParaCharacter(bitmap* map, int pos)
 {
     int i; // Variavel de incrementação
     int num; // armazena o valor do caracter em inteiro decimal
 
-    // Percorrendo os 8 primeiros bits do bitvet
-    for(i = 0, num = 0 ; i < 8 ; i++)
+    // Percorrendo os 8 bits do bitmap a partir de pos
+    for(i = pos, num = 0 ; i < pos+8 ; i++)
     {
-        if(vet[i] == 1) // se o bit for 1
+        if(bitmapGetBit(*map,i) == 1) // se o bit for 1
         {
-            num += pow(2.0, 7 - i); // soma à conversão a respectiva potência de 2
+            num += pow(2.0, 7 - (i-pos)); // soma à conversão a respectiva potência de 2
         }
     }
 
-    return (unsigned char) num; // retorna caracter sem sinal
+    return (unsigned char) num; // retorna o caracter sem sinal
 }
 
 /**
  * Função auxiliar que converte um binário de 3 bits para inteiro:
- * Input: vetor contendo um binário de 3 bits;
- * Output: o caracter convertido dos 3 primeiros bits do vetor;
- * Condições: vetor existente e válido;
+ * Input: bitmap contendo um binário de 3 bits;
+ * Output: o inteiro convertido dos 3 primeiros bits do bitmap;
+ * Condições: bitmap existente e válido;
  * Efeitos Colaterais: nenhum;
 */
-static int ConverteParaInt(int* vet)
+static int ConverteParaInt(bitmap* map)
 {
     int i; // Variavel de incrementação
     int num; // armazena o valor do binário em inteiro decimal
 
-    // Percorrendo os 3 primeiros bits do bitvet
+    // Percorrendo os 3 primeiros bits do bitmap
     for(i = 0, num = 0 ; i < 3 ; i++)
     {
-        if(vet[i] == 1) // se o bit for 1
+        if(bitmapGetBit(*map,i) == 1) // se o bit for 1
         {
             num += pow(2.0, 2 - i); // soma à conversão a respectiva potência de 2
         }
@@ -116,133 +123,55 @@ static int ConverteParaInt(int* vet)
 }
 
 /**
- * Função auxiliar que lê um carácter do arquivo de entrada e o converte para binário:
- * Input: arquivo de leitura, lista de inteiros e um vetor;
- * Output: inteiro de carater booleano indicando se ainda há caracteres para serem lidos;
- * Condições: arquivo existe, lista alocada e vetor com tamanho máximo de pelo menos 8;
- * Efeitos Colaterais: lista incrementada em 8 bits e vetor contem o binário;
-*/
-static void PegaCaracter(FILE* input, Lista* lista, int* vet, int* tam)
-{
-    int i; // variável de incrementação
-    char c; // variável auxiliar para leitura do arquivo
-    Item* item; // variável auxiliar
-
-    c = fgetc(input); // retira um carácter do arquivo
-    if(c == EOF) // caso seja o fim do arquivo
-    {
-        return 0; // retorna 0
-    }
-
-    ConverteParaBinario(vet,c); // convertendo c para binário e armazenando no vetor
-    // Copiando o vetor no fim da lista
-    for(i = 0 ; i < 8 ; i++)
-    {
-        item = Lista_NovoItem("int*", ListaCaminho_CriaInt(vet[i]));
-        Lista_ListaAdd(lista, item, Lista_TamanhoLista(lista));
-    }
-
-    *tam -= 8;
-
-    return 1;
-}
-
-/**
- * Função auxiliar que codifica uma árvore para ser impressa e a armazena numa lista de inteiros:
- * Input: lista de inteiros, árvore e um vetor;
+ * Função auxiliar que codifica uma árvore para ser impressa e a armazena num bitmap:
+ * Input: bitmap e árvore;
  * Output: nenhum;
- * Condições: lista tipo int, árvore e vetor existentem e vetor tem tamanho máximo de pelo menos 8;
- * Efeitos Colaterais: a lista recebe a árvore codificada no final;
+ * Condições: bitmap e árvore existentes, bitmap com tamanho máximo suficiente;
+ * Efeitos Colaterais: o bitmap recebe a árvore codificada no final;
 */
-static void CompactaArvore(Lista* lista, Arvore* arvore, int* vet)
+static void CompactaArvore(bitmap* map, Arvore* arvore)
 {
     if(Arvore_EhFolha(arvore)) // se a árvore for uma folha
     {
-       int i; // Variavel de incrementação
-       ConverteParaBinario(vet,Arvore_Caracter(arvore)); // converte o carácter para binário
-       Lista_ListaAdd(lista,Lista_NovoItem("int*",ListaCaminho_CriaInt(0)),Lista_TamanhoLista(lista)); // insere 0 (codigo para folha) na lista
-       for(i = 0 ; i < 8 ; i++) // insere em seguida o caracter em binário
-       {
-           Lista_ListaAdd(lista,Lista_NovoItem("int*",ListaCaminho_CriaInt(vet[i])),Lista_TamanhoLista(lista));
-       }
+        bitmapAppendLeastSignificantBit(map,0); // acressenta 0 ao bitmap (código para folha)
+        ConverteParaBinario(map,Arvore_Caracter(arvore)); // converte o carácter para binário e também o acressenta
     }
     else // se a árvore for um nó
     {
-        Lista_ListaAdd(lista,Lista_NovoItem("int*",ListaCaminho_CriaInt(1)),Lista_TamanhoLista(lista)); // insere 1 (codigo para nó) na lista
-        CompactaArvore(lista,Arvore_ArvoreEsquerda(arvore),vet); // compacta a árvore da esquerda
-        CompactaArvore(lista,Arvore_ArvoreDireita(arvore), vet); // compacta a árvore da direita
+        bitmapAppendLeastSignificantBit(map,1); // acressenta 1 ao bitmap (código para árvore)
+        CompactaArvore(map,Arvore_ArvoreEsquerda(arvore)); // compacta a árvore da esquerda
+        CompactaArvore(map,Arvore_ArvoreDireita(arvore)); // compacta a árvore da direita
     }
 }
 
 /**
  * Função auxiliar que reconstroi a árvore de Huffman compactada:
- * Input: arquivo de leitura, lista de inteiros e um vetor;
+ * Input: bitmap e ponteiro para a posição de início da árvore no bitmap;
  * Output: árvore de Huffman;
- * Condições: arquivo existe, lista alocada e vetor com tamanho máximo de pelo menos 8;
- * Efeitos Colaterais: lista modificada;
+ * Condições: bitmap contêm a árvore codificada;
+ * Efeitos Colaterais: posição incrementada;
 */
-static Arvore* DescompactaArvore(FILE* input, Lista* bits, int* vet, int* tam)
+static Arvore* DescompactaArvore(bitmap* map, int* pos)
 {
-    if(Lista_ListaVazia(bits)) // se não houverem bits para ser lidos
+    if( bitmapGetBit(*map,*pos)) // se o primeiro bit lido for 1
     {
-        PegaCaracter(input, bits, vet, tam); // lê um byte do arquivo
-    }
-    if( *((int*) Lista_AchaItem(bits, 0))) // se o primeiro bit lido for 1
-    {
-        Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove esse bit da lista
-
+        // Incrementa posição
+        *pos += 1;
         // lê suas arvores esquerda e direita
-        Arvore *esq = DescompactaArvore(input, bits, vet, tam);
-        Arvore *dir = DescompactaArvore(input, bits, vet, tam);
+        Arvore *esq = DescompactaArvore(map,pos);
+        Arvore *dir = DescompactaArvore(map,pos);
         // Retorna uma nova árvore nó
         return Arvore_CriaArvore(0, esq, dir);
     }
-    else // caso o bit for 0
-    {
-        Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove esse bit da lista
+    // Caso o bit for 0
 
-        int i;
-        if(Lista_TamanhoLista(bits) < 8) // verifica se todos os bits nescessarios estão na lista
-        {
-            PegaCaracter(input, bits, vet, tam); // caso não, lê mais um byte
-        }
+    *pos += 1; // incrementa posição
+    // Cria uma nova árvore folha com o carácter lido nos 8 bits seguintes da lista
+    Arvore* folha = Arvore_CriaFolha(ConverteParaCharacter(map,*pos), 0);
+    // pula esses bits no bitmap
+    *pos += 8;
 
-        // Inserindo os 8 primeiros bits da lista em vet
-        for(i = 0 ; i < 8 ; i++)
-        {
-            vet[i] = *((int*)Lista_AchaItem(bits,i));
-        }
-
-        // Cria uma nova árvore folha com o carácter lido nos atuais primeiros 8 bits da lista
-        Arvore* folha = Arvore_CriaFolha(ConverteParaCharacter(vet), 0);
-        // Remaove esses bits da lista
-        for(i = 0 ; i < 8 ; i++)
-        {
-            Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt);
-        }
-
-        return folha;
-    }
-
-}
-
-/**
- * Função auxiliar que imprime os 8 primeiros bits de uma lista como carácter codificado no arquivo especificado:
- * Input: vetor, lista e arquivo;
- * Output: nenhum;
- * Condições: vetor com tamanho de pelo menos 8, lista tipo int com os bits e arquivo existente;
- * Efeitos Colaterais: os 8 primeiros bits são codificados, impressos no arquivo e removidos da lista;
-*/
-static void ImprimeCaracter(int* vet, Lista* lista, FILE* output)
-{
-    int i; // Variavel de incrementação
-    for(i = 0 ; i < 8 ; i++)
-    {
-        vet[i] = *((int*) Lista_AchaItem(lista,0));
-        Lista_ListaRemove(lista,0,ListaCaminho_LiberaInt);
-    }
-
-    fputc(ConverteParaCharacter(vet),output);
+    return folha;
 }
 
 /**
@@ -299,13 +228,37 @@ static void InsereArvoreOrdenado(Lista* l, Arvore* arvore)
     Lista_ListaAdd(l, Lista_NovoItem("Arvore", arvore), i); // Inserindo árvore em sua devida posição
 }
 
-// Função que calcula a quantidade de caracteres em um arquivo de entrada:
-static int TamanhoArquivo(FILE* f)
+/**
+ * Função auxiliar que calcula o tamanho de um arquivo de leitura:
+ * Input: ponteiro para o arquivo;
+ * Output: tamanho do arquivo em bytes;
+ * Condições: arquivo existente e inicializado;
+ * Efeitos Colaterais: ponteiro do arquivo retorna ao seu início;
+*/static int TamanhoArquivo(FILE* f)
 {
-    fseek(f, 0L, SEEK_END);
-    int ret = ftell(f);
-    rewind(f);
-    return ret;
+    fseek(f, 0L, SEEK_END); // ponteiro atualizado para o fim do arquivo
+    int ret = ftell(f); // ret recebe numero de bytes do início ao ponteiro
+    rewind(f); // ponteiro retorna ao início
+    return ret; // retornando ret
+}
+
+/**
+ * Função auxiliar que calcula o tamanho para o bitmap:
+ * Input: tamanho do arquivo de leitura em bytes;
+ * Output: tamanho do bitmap em bits;
+ * Condições: tamanho maior que 0;
+ * Efeitos Colaterais: nenhum;
+*/
+static int TamanhoBitmap(int tamArq)
+{
+    if(tamArq < BM_MIN_TAM) // se o tamanho for menor que o tamanho minimo escolhido
+    {
+        return BM_MIN_TAM*8; // retorna o tamanho minimo vezes 8
+    }
+    else // se não
+    {
+        return tamArq*8; // retorna o tamanho do arquivo de entrada vezes 8
+    }
 }
 
 // Lendo arquivo e montando a árvore de Huffman:
@@ -355,128 +308,103 @@ Arvore* Compactador_MontaArvoreHuffman(char* arquivo)
 void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
 {
     int i; // Variavel de incrementação
-    FILE* output = fopen(saida, "w+"); // abrindo arquivo de escrita
+    FILE* output; // arquivo de escrita
     FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
+    int arqTam = TamanhoArquivo(input); // tamanho do arquivo de leitura
+    int posicao = 0; // atual posição no arquivo
     char c; // variável auxiliar para leitura do arquivo
-    Lista* caminho = ListaCaminho_CriaLista(arvoreHuffman); // lista com os novos códigos para cada carácter
-    Lista* bits = ListaCaminho_CriaListaInt(); // lista auxiliar que guarda a sequência de bits a serem impressos
+    Lista* caminho = ListaCaminho_CriaLista(arvoreHuffman); // lista com os códigos binários para cada carácter
     Lista* l; // lista auxiliar que guarda o caminho até certo carácter
-    int caracter[8]; // vetor auxiliar que guarda o carácter a ser impresso
+    bitmap map = bitmapInit(TamanhoBitmap(arqTam)); // bitmap para impressão
 
-    InicializaVetor(caracter, 8); // inicializando todos os bits do vetor como 0
+    //- Preparando o cabeçalho -//
 
-    // Reservando os 3 próximos bits da lista para informar o número de bits sobrando no último carácter do arquivo
+    // Reservando os 3 primeiros bits do bitmap para informar o número de bits sobrando no último carácter do arquivo compactado
     for(i = 0 ; i < 3 ; i++)
     {
-        Lista_ListaAdd(bits, Lista_NovoItem("int*",ListaCaminho_CriaInt(0)),Lista_TamanhoLista(bits));
+        bitmapAppendLeastSignificantBit(&map,0);
     }
 
-    // Imprimindo a árvore compactada
-    // Compacta a árvore em bits
-    CompactaArvore(bits,arvoreHuffman, caracter);
-    // Imprime os bits da lista, de 8 em 8, como carácteres
-    while(Lista_TamanhoLista(bits) >= 8)
-    {
-        ImprimeCaracter(caracter,bits,output);
-    }
+    // Inserindo a árvore compactada no bitmap
+    CompactaArvore(&map,arvoreHuffman);
 
-    // Imprimindo em seguida a conversão do arquivo de entrada
+    //- Imprimindo em seguida a conversão do arquivo de entrada -//
+
     c = fgetc(input); // inicializando com o primeiro carácter
-    while(c != EOF) // varrendo o arquivo de entrada
+    while(posicao < arqTam) // varrendo o arquivo de entrada
     {
         l = ListaCaminho_Caminho(caminho,c); // buscando o caminho para o carácter lido
-        // Inserindo o caminho na lista bits
+        // Inserindo o caminho no bitmap
         for(i = 0 ; i < Lista_TamanhoLista(l) ; i++)
         {
-            Lista_ListaAdd(bits,Lista_NovoItem("int*",ListaCaminho_CriaInt( *((int*) Lista_AchaItem(l,i)) ) ),Lista_TamanhoLista(bits));
-        }
-
-        // Imprimindo os bits caso completem um carácter
-        while(Lista_TamanhoLista(bits) >= 8)
-        {
-            ImprimeCaracter(caracter,bits,output);
+            bitmapAppendLeastSignificantBit(&map, *((int*) Lista_AchaItem(l,i)) );
         }
 
         c = fgetc(input); // atualizando carácter
+        posicao += 1; // atualizando posição
     }
     fclose(input); // fechando arquivo de leitura
 
-    if(!Lista_ListaVazia(bits)) // se sobrarem bits para serem impressos
+    i = 0; // inicializando i para armazenar o número de bits restantes no bitmap que não completarem um byte
+    if(bitmapGetLength(map) % 8 != 0) // se faltarem bits para completar um carácter
     {
-        i = Lista_TamanhoLista(bits); // guardando tamanho atual da lista
-        // Completa a lista até 8 bits
-        while(Lista_TamanhoLista(bits) < 8)
-        {
-            Lista_ListaAdd(bits,Lista_NovoItem("int*",ListaCaminho_CriaInt(0)),Lista_TamanhoLista(bits));
-        }
-        
-        // Imprime o último carácter
-        ImprimeCaracter(caracter,bits,output);
-        
-        i = 8 - i; // i recebe o número de bits sobrando no último carácter
-
-        rewind(output); // volta ao inicio do arquivo
-        c = fgetc(output); // lê o primeiro carácter
-        ConverteParaBinario(caracter,c); // converte-o para binário
-        ConverteIntParaBinario(caracter,i); // substitui os 3 bits reservados no inicio pelo valor de i em binário
-
-        rewind(output); // retorna ao começo novamente
-        fputc(ConverteParaCharacter(caracter),output); // substitui o primeiro carácter
+        i = 8 - bitmapGetLength(map) % 8; // i recebe o número de bits sobrando no último carácter
+        ConverteIntParaBinario(&map,i); // os 3 bits reservados no inicio são substituidos pelo valor de i em binário
     }
+
+    // Imprimindo:
+    output = fopen(saida, "w"); // abrindo arquivo de escrita
+
+    int tam = i? bitmapGetLength(map)/8 +1 : bitmapGetLength(map)/8; // tamanho do bitmap a ser impresso
+
+    // Imprimindo todos os bits do bitmap como carácteres
+    for(i = 0 ; i < tam ; i++)
+    {
+        fputc(bitmapGetContents(map)[i] ,output);
+    }
+
     fclose(output); // fechando arquivo de escrita
 
-    // Destruindo as listas utilizadas
+    // Destruindo as estruturas utilizadas
     ListaCaminho_DestroiLista(caminho); // destruindo a lista de inteiros
-    Lista_DestroiLista(bits,ListaCaminho_LiberaInt); // destruindo a lista de impressão
+    free(bitmapGetContents(map)); // liberando o conteúdo do bitmap
 }
 
 // Descompactando e imprimindo um arquivo:
 void Compactador_Descompacta(char* entrada, char* saida)
 {
-    int i;
+    int i; // variável de incrementação
+    char c; // carácter auxiliar para leitura do arquivo de entrada
     FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
-    FILE* output = fopen(saida, "w"); // abrindo arquivo de escrita
-    Lista *bits = ListaCaminho_CriaListaInt(); // lista auxiliar que armazenar a sequencia binária lida do arquivo de entrada
-    int vet[8]; // auxiliar de conversão
+    FILE* output; // arquivo de escrita
+    int tamArq = TamanhoArquivo(input); // número de carácteres no arquivo de leitura
     Arvore *huffman; // árvore de compactação/descompactação armazenada no cabeçalho do arquivo compactado
     Arvore *atual; // árvore auxiliar de busca
+    bitmap map = bitmapInit(TamanhoBitmap(tamArq)); // bitmap que armazenará o arquivo de leitura em formato binário
     int naoUtilizados; // armazena quantos bits não devem ser considerados no ultimo carácter do arquivo
-    int fda; // variável auxiliar que indica o número de bits no arquivo
+    int bitPos; // indica a posição atual no bitmap
 
-    InicializaVetor(vet,8);
-    //fseek(input, strlen(term) +1, SEEK_SET);
-
-    PegaCaracter(input,bits,vet,fda); // pegando primeiro carácter
-    naoUtilizados = ConverteParaInt(vet); // convertendo seus 3 primeiros bits para inteiro
-    // Removendo esses 3 bits da lista
-    for(i = 0 ; i < 3 ; i++)
+    // lendo todo o arquivo de entrada para o bitmap
+    for(i = 0 ; i < tamArq ; i++)
     {
-        Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt);
+        c = fgetc(input); // retira um carácter do arquivo
+        ConverteParaBinario(&map,c); // convertendo o carácter para binário e armazenando no bitmap
     }
+    fclose(input); // fechando arquivo de leitura
 
-    fda = TamanhoArquivo(entrada) * 8 - naoUtilizados;
+    naoUtilizados = ConverteParaInt(&map); // convertendo seus 3 primeiros bits para inteiro
+    bitPos = 3; // pulando esses 3 bits no bitmap
 
     // Descompactando a árvore de Huffman
-    huffman = DescompactaArvore(input, bits, vet, fda);
+    huffman = DescompactaArvore(&map, &bitPos);
 
     // Preparando para iniciar o loop
-    // Incrementando a lista de inteiros, caso esteja vazia
-    if(Lista_ListaVazia(bits))
-    {
-        PegaCaracter(input,bits,vet,fda);
-    }
-
+    output = fopen(saida, "w"); // abrindo arquivo de escrita
     atual = huffman; // inicializando auxiliar
-    while(fda > 0) // loop para quando a lista de inteiros estiver vazia
-    {
-        // Incrementando a lista caso seu tamanho seja menor que 8
-        if(Lista_ListaVazia(bits))
-        {
-            PegaCaracter(input,bits,vet,fda);
-        }
-        
+    while(bitPos < tamArq*8 -naoUtilizados) // percorrendo bitmap, desconsiderando os bits não utilizados
+    {   
         // Avaliando caminho para a folha
-        if( *((int*) Lista_AchaItem(bits,0)) ) // se o bit for 1
+        if( bitmapGetBit(map,bitPos) ) // se o bit for 1
         {
             atual = Arvore_ArvoreDireita(atual); // segue para a árvore da direita
         }
@@ -484,7 +412,7 @@ void Compactador_Descompacta(char* entrada, char* saida)
         {
             atual = Arvore_ArvoreEsquerda(atual); // segue para a árvore da esquerda
         }
-        Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove o bit já lido
+        bitPos++; // pula o bit já lido
         
         // Verificando se a árvore atual é uma folha
         if(Arvore_EhFolha(atual))
@@ -493,11 +421,9 @@ void Compactador_Descompacta(char* entrada, char* saida)
             atual = huffman; // reiniciando atual
         }
     }
-
-    // Fechando os arquivos
-    fclose(input); // fechando arquivo de leitura
     fclose(output); // fechando arquivo de escrita
+
     // Destruindo as estruturas utilizadas
-    Lista_DestroiLista(bits,ListaCaminho_LiberaInt); // destruindo a lista de leitura
     Arvore_DestroiArvore(huffman); // destruindo a árvore de Huffman
+    free(bitmapGetContents(map)); // liberando o bitmap
 }

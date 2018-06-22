@@ -181,30 +181,30 @@ static void CompactaArvore(Lista* lista, Arvore* arvore, int* vet)
  * Condições: arquivo existe, lista alocada e vetor com tamanho máximo de pelo menos 8;
  * Efeitos Colaterais: lista modificada;
 */
-static Arvore* DescompactaArvore(FILE* input, Lista* bits, int* vet,int* tam)
+static Arvore* DescompactaArvore(FILE* input, Lista* bits, int* vet, int* tam)
 {
     if(Lista_ListaVazia(bits)) // se não houverem bits para ser lidos
     {
-        PegaCaracter(input,bits,vet,tam); // lê um byte do arquivo
+        PegaCaracter(input, bits, vet, tam); // lê um byte do arquivo
     }
     if( *((int*) Lista_AchaItem(bits, 0))) // se o primeiro bit lido for 1
     {
-        Lista_ListaRemove(bits,0,ListaCaminho_LiberaInt); // remove esse bit da lista
+        Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove esse bit da lista
 
         // lê suas arvores esquerda e direita
-        Arvore *esq = DescompactaArvore(input,bits,vet);
-        Arvore *dir = DescompactaArvore(input,bits,vet);
+        Arvore *esq = DescompactaArvore(input, bits, vet, tam);
+        Arvore *dir = DescompactaArvore(input, bits, vet, tam);
         // Retorna uma nova árvore nó
         return Arvore_CriaArvore(0, esq, dir);
     }
     else // caso o bit for 0
     {
-        Lista_ListaRemove(bits,0,ListaCaminho_LiberaInt); // remove esse bit da lista
+        Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt); // remove esse bit da lista
 
         int i;
         if(Lista_TamanhoLista(bits) < 8) // verifica se todos os bits nescessarios estão na lista
         {
-            PegaCaracter(input,bits,vet,tam); // caso não, lê mais um byte
+            PegaCaracter(input, bits, vet, tam); // caso não, lê mais um byte
         }
 
         // Inserindo os 8 primeiros bits da lista em vet
@@ -218,7 +218,7 @@ static Arvore* DescompactaArvore(FILE* input, Lista* bits, int* vet,int* tam)
         // Remaove esses bits da lista
         for(i = 0 ; i < 8 ; i++)
         {
-            Lista_ListaRemove(bits,0,ListaCaminho_LiberaInt);
+            Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt);
         }
 
         return folha;
@@ -297,6 +297,15 @@ static void InsereArvoreOrdenado(Lista* l, Arvore* arvore)
     } // Ao fim do loop, 'i' será a posição onde deve ser inserida a árvore
 
     Lista_ListaAdd(l, Lista_NovoItem("Arvore", arvore), i); // Inserindo árvore em sua devida posição
+}
+
+// Função que calcula a quantidade de caracteres em um arquivo de entrada:
+static int TamanhoArquivo(FILE* f)
+{
+    fseek(f, 0L, SEEK_END);
+    int ret = ftell(f);
+    rewind(f);
+    return ret;
 }
 
 // Lendo arquivo e montando a árvore de Huffman:
@@ -445,7 +454,7 @@ void Compactador_Descompacta(char* entrada, char* saida)
         Lista_ListaRemove(bits, 0, ListaCaminho_LiberaInt);
     }
 
-    fda = SuaFuncao() *8 - naoUtilizados;
+    fda = TamanhoArquivo(entrada) * 8 - naoUtilizados;
 
     // Descompactando a árvore de Huffman
     huffman = DescompactaArvore(input, bits, vet, fda);

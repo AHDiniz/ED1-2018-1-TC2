@@ -175,60 +175,6 @@ static Arvore* DescompactaArvore(bitmap* map, int* pos)
 }
 
 /**
- * Função auxiliar que identifica os pesos de cada caracter do arquivo:
- * Input: nome do arquivo;
- * Output: vetor com os pesos de cada caracter (identificados pela sua posição no vetor);
- * Condições: arquivo existe;
- * Efeitos Colaterais: nenhum;
-*/
-static int* MontaVetorPesos(char* arquivo)
-{
-    int i; // Variavel de incrementação
-    int *pesos = (int*) malloc(sizeof(int) * ASCII_TAM); // vetor que guarda o peso do caracter na masma posição de sua posição da tabela ASCII
-    char c; // auxiliar que guarda o caracter
-
-    // Inicializando ocorrencias
-    for(i = 0 ; i < ASCII_TAM ; i++)
-    {
-        pesos[i] = 0;
-    }
-
-    FILE *input = fopen(arquivo, "r"); // abrindo arquivo
-
-    c = fgetc(input); // selecionando primeiro caracter
-    while(c != EOF) // percorrendo todo arquivo
-    {
-        pesos[c] += 1; // contando as ocorrencias de cada caracter
-        c = fgetc(input); // atualizando caracter
-    }
-
-    fclose(input); // fechando arquivo
-    return pesos;
-}
-
-/**
- * Função auxiliar que insere ordenadamente uma árvore numa lista:
- * Input: lista e árvore;
- * Output: nenhum;
- * Condições: lista e árvore existem;
- * Efeitos Colaterais: árvore inclusa à lista mantendo-a ordenada;
-*/
-static void InsereArvoreOrdenado(Lista* l, Arvore* arvore)
-{
-    int i; // Variavel de incrementação
-    for(i = 0 ; i < Lista_TamanhoLista(l) ; i++) // Varrendo toda a lista
-    {
-        // Interrompendo o loop ao encontrar uma árvore com campo 'ocorrencias' maior do que o da árvore a ser inserida
-        if(Arvore_Ocorrencias((Arvore*) Lista_AchaItem(l,i)) > Arvore_Ocorrencias(arvore))
-        {
-            break;
-        }
-    } // Ao fim do loop, 'i' será a posição onde deve ser inserida a árvore
-
-    Lista_ListaAdd(l, Lista_NovoItem("Arvore", arvore), i); // Inserindo árvore em sua devida posição
-}
-
-/**
  * Função auxiliar que calcula o tamanho de um arquivo de leitura:
  * Input: ponteiro para o arquivo;
  * Output: tamanho do arquivo em bytes;
@@ -257,8 +203,65 @@ static int TamanhoBitmap(int tamArq)
     }
     else // se não
     {
-        return tamArq*8; // retorna o tamanho do arquivo de entrada vezes 8
+        return tamArq*8*2; // retorna o dobro do tamanho do arquivo de entrada vezes 8
     }
+}
+
+/**
+ * Função auxiliar que identifica os pesos de cada caracter do arquivo:
+ * Input: nome do arquivo;
+ * Output: vetor com os pesos de cada caracter (identificados pela sua posição no vetor);
+ * Condições: arquivo existe;
+ * Efeitos Colaterais: nenhum;
+*/
+static int* MontaVetorPesos(char* arquivo)
+{
+    int i; // Variavel de incrementação
+    int *pesos = (int*) malloc(sizeof(int) * ASCII_TAM); // vetor que guarda o peso do caracter na masma posição de sua posição da tabela ASCII
+    unsigned char c; // auxiliar que guarda o caracter
+
+    // Inicializando ocorrencias
+    for(i = 0 ; i < ASCII_TAM ; i++)
+    {
+        pesos[i] = 0;
+    }
+
+    FILE *input = fopen(arquivo, "r"); // abrindo arquivo
+
+    int arqTam = TamanhoArquivo(input); // armazena o tamanho do arquivo de entrada
+    int posicao = 0; // indica a posição no arquivo
+
+    while(posicao < arqTam) // percorrendo todo arquivo
+    {
+        c = fgetc(input); // inicializando/atualizando caracter
+        pesos[c] += 1; // contando as ocorrencias de cada caracter
+        posicao += 1; // atualizando posição
+    }
+
+    fclose(input); // fechando arquivo
+    return pesos;
+}
+
+/**
+ * Função auxiliar que insere ordenadamente uma árvore numa lista:
+ * Input: lista e árvore;
+ * Output: nenhum;
+ * Condições: lista e árvore existem;
+ * Efeitos Colaterais: árvore inclusa à lista mantendo-a ordenada;
+*/
+static void InsereArvoreOrdenado(Lista* l, Arvore* arvore)
+{
+    int i; // Variavel de incrementação
+    for(i = 0 ; i < Lista_TamanhoLista(l) ; i++) // Varrendo toda a lista
+    {
+        // Interrompendo o loop ao encontrar uma árvore com campo 'ocorrencias' maior do que o da árvore a ser inserida
+        if(Arvore_Ocorrencias((Arvore*) Lista_AchaItem(l,i)) > Arvore_Ocorrencias(arvore))
+        {
+            break;
+        }
+    } // Ao fim do loop, 'i' será a posição onde deve ser inserida a árvore
+
+    Lista_ListaAdd(l, Lista_NovoItem("Arvore", arvore), i); // Inserindo árvore em sua devida posição
 }
 
 // Lendo arquivo e montando a árvore de Huffman:
@@ -312,7 +315,7 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
     int arqTam = TamanhoArquivo(input); // tamanho do arquivo de leitura
     int posicao = 0; // atual posição no arquivo
-    char c; // variável auxiliar para leitura do arquivo
+    unsigned char c; // variável auxiliar para leitura do arquivo
     Lista* caminho = ListaCaminho_CriaLista(arvoreHuffman); // lista com os códigos binários para cada carácter
     Lista* l; // lista auxiliar que guarda o caminho até certo carácter
     bitmap map = bitmapInit(TamanhoBitmap(arqTam)); // bitmap para impressão
@@ -330,9 +333,10 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
 
     //- Imprimindo em seguida a conversão do arquivo de entrada -//
 
-    c = fgetc(input); // inicializando com o primeiro carácter
     while(posicao < arqTam) // varrendo o arquivo de entrada
     {
+        c = fgetc(input); // inicializando/atualizando carácter
+
         l = ListaCaminho_Caminho(caminho,c); // buscando o caminho para o carácter lido
         // Inserindo o caminho no bitmap
         for(i = 0 ; i < Lista_TamanhoLista(l) ; i++)
@@ -340,7 +344,6 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
             bitmapAppendLeastSignificantBit(&map, *((int*) Lista_AchaItem(l,i)) );
         }
 
-        c = fgetc(input); // atualizando carácter
         posicao += 1; // atualizando posição
     }
     fclose(input); // fechando arquivo de leitura
@@ -374,7 +377,7 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
 void Compactador_Descompacta(char* entrada, char* saida)
 {
     int i; // variável de incrementação
-    char c; // carácter auxiliar para leitura do arquivo de entrada
+    unsigned char c; // carácter auxiliar para leitura do arquivo de entrada
     FILE* input = fopen(entrada, "r"); // abrindo arquivo de leitura
     FILE* output; // arquivo de escrita
     int tamArq = TamanhoArquivo(input); // número de carácteres no arquivo de leitura

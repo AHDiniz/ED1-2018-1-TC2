@@ -8,7 +8,7 @@ OBJ = $(SRC:.c=.o)
 
 EXE = compact.out
 
-CFLAGS = -Wall -g -O3
+CFLAGS = -Wall -g -O3 -lm
 
 $(EXE): $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)

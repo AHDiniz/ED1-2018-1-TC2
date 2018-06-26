@@ -203,7 +203,7 @@ static int TamanhoBitmap(int tamArq)
     }
     else // se não
     {
-        return tamArq*8*2; // retorna o dobro do tamanho do arquivo de entrada vezes 8
+        return tamArq*8; // retorna o tamanho do arquivo de entrada vezes 8
     }
 }
 
@@ -318,7 +318,7 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     unsigned char c; // variável auxiliar para leitura do arquivo
     Lista* caminho = ListaCaminho_CriaLista(arvoreHuffman); // lista com os códigos binários para cada carácter
     Lista* l; // lista auxiliar que guarda o caminho até certo carácter
-    bitmap map = bitmapInit(TamanhoBitmap(arqTam)); // bitmap para impressão
+    bitmap map = bitmapInit(2*TamanhoBitmap(arqTam)); // bitmap para impressão
 
     //- Preparando o cabeçalho -//
 

@@ -358,8 +358,10 @@ void Compactador_Compacta(Arvore* arvoreHuffman, char* entrada, char* saida)
     // Imprimindo:
     output = fopen(saida, "w"); // abrindo arquivo de escrita
 
+    int tam = i? bitmapGetLength(map)/8 +1 : bitmapGetLength(map)/8; // tamanho do bitmap a ser impresso
+
     // Imprimindo todos os bits do bitmap como carácteres
-    for(i = 0 ; i < bitmapGetLength(map) ; i++)
+    for(i = 0 ; i < tam ; i++)
     {
         fputc(bitmapGetContents(map)[i] ,output);
     }

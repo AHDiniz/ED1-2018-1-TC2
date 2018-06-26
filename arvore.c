@@ -147,7 +147,7 @@ void Arvore_ImprimeArvore(Arvore* raiz)
     printf("<");
     if(Arvore_EhFolha(raiz))
     {
-        printf("%c,%d", raiz->caracter, raiz->ocorrencias);
+        printf("%0xh,%d", raiz->caracter, raiz->ocorrencias);
     }
     else
     {

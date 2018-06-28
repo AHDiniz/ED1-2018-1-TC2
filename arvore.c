@@ -25,7 +25,7 @@ static void Arvore_CaminhoAux(Arvore* raiz, Arvore* alvo, Lista* caminho)
     if (raiz == NULL) // Verificação de exceção
         return;
 
-    if (raiz->caracter == alvo->caracter)
+    if (Arvore_EhFolha(raiz) && raiz->caracter == alvo->caracter)
         return;
     else if (Arvore_Pertence(raiz->esq, (unsigned char*) &(alvo->caracter)))
     {
